@@ -1,0 +1,12 @@
+# Env files (keep .env.example tracked)
+.env
+.env.local
+.env*.local
+
+# Dependencies / build
+node_modules/
+dist/
+.vercel/
+
+# OS
+.DS_Store
