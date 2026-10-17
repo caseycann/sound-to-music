@@ -1,0 +1,36 @@
+import { useRef } from 'react'
+import DotFieldFrame from './DotFieldFrame.jsx'
+import DotTooltip from './DotTooltip.jsx'
+import ZoomControls from './ZoomControls.jsx'
+import { useDotField } from './useDotField.js'
+import { useElementWidth } from './useElementWidth.js'
+
+const NO_IDS = new Set()
+const NO_STATES = {}
+
+// A square field of sounds you can zoom, pan and pick from.
+//   sounds:  [{ id, onomatopoeia, descriptors, finalX, finalY, quadrant? }]
+//   usedIds: Set of ids that are faded out and can't be picked
+//   states:  { [id]: 'loading' | 'error' } for per-dot status styling
+//   onPick(sound): click, or Enter / Space on a focused dot
+export default function DotField({ sounds, usedIds = NO_IDS, states = NO_STATES, onPick, label = 'Sounds' }) {
+  const [frameRef, size] = useElementWidth()
+  const svgRef = useRef(null)
+  const field = useDotField({ svgRef, size, sounds, usedIds, states, onPick })
+
+  return (
+    <div className="dot-field">
+      <div ref={frameRef} className="dot-field-frame">
+        <DotFieldFrame ref={svgRef} size={size} label={label} />
+        {field.active && <DotTooltip {...field.active} fieldSize={size} />}
+      </div>
+      <ZoomControls
+        zoomed={field.zoomed}
+        canZoomIn={field.canZoomIn}
+        onZoomIn={field.zoomIn}
+        onZoomOut={field.zoomOut}
+        onReset={field.resetZoom}
+      />
+    </div>
+  )
+}

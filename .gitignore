@@ -14,3 +14,6 @@ public/supersonic/
 # OS
 .DS_Store
 .vercel
+
+# Local test recordings for scripts/tune-features.mjs (may contain voices)
+tuning-clips/

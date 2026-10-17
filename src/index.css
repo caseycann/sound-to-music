@@ -13,3 +13,442 @@ main {
   display: grid;
   place-items: center;
 }
+
+.uploader {
+  width: min(720px, 100% - 32px);
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.waveform {
+  margin: 8px 0;
+}
+
+.waveform-label {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.waveform-track {
+  position: relative;
+  overflow: hidden;
+  touch-action: none; /* let pointer drags work on touch screens */
+  cursor: pointer;
+  user-select: none;
+}
+
+.waveform-canvas {
+  display: block;
+  width: 100%;
+  height: 96px;
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #2a5db0;
+}
+
+.waveform-selection {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 12px;
+  box-sizing: border-box;
+  background: rgb(255 170 0 / 0.25);
+  border: 2px solid #e08a00;
+  cursor: grab;
+}
+
+.waveform-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: ew-resize;
+}
+
+.waveform-handle.start {
+  left: -6px;
+}
+
+.waveform-handle.end {
+  right: -6px;
+}
+
+.waveform-selection:focus-visible,
+.waveform-handle:focus-visible {
+  outline: 3px solid #2a5db0;
+}
+
+.describe-form {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+}
+
+.word-field {
+  display: grid;
+  gap: 2px;
+  margin: 12px 0;
+  max-width: 320px;
+}
+
+.word-field label {
+  font-weight: 600;
+}
+
+.word-hint {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.word-field input {
+  font: inherit;
+  padding: 6px 8px;
+}
+
+.word-field input[aria-invalid] {
+  border-color: #b3261e;
+}
+
+.word-error {
+  font-size: 0.85rem;
+  color: #b3261e;
+}
+
+.place-sound {
+  width: min(560px, 100% - 32px);
+}
+
+.field {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  user-select: none;
+}
+
+.field-placing {
+  cursor: crosshair;
+  touch-action: none; /* let pointer drags work on touch screens */
+}
+
+.field-placing:focus-visible {
+  outline: 3px solid #2a5db0;
+  outline-offset: 2px;
+}
+
+.field-bg {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.field-grid line {
+  stroke: #f0f0f0;
+}
+
+.field-axis {
+  stroke: #ccc;
+}
+
+.field-quadrant {
+  font-size: 16px;
+  fill: #bbb;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.field-end {
+  font-size: 12px;
+  fill: #555;
+  text-anchor: middle;
+}
+
+.field-dot circle {
+  stroke-width: 2.5;
+}
+
+.field-dot-student circle {
+  fill: #e08a00;
+  stroke: #fff;
+}
+
+.field-dot-claude circle {
+  fill: rgb(42 93 176 / 0.12);
+  stroke: #2a5db0;
+  stroke-dasharray: 4 3;
+}
+
+.field-dot-audio circle {
+  fill: rgb(46 125 50 / 0.12);
+  stroke: #2e7d32;
+  stroke-dasharray: 4 3;
+}
+
+.field-dot-label {
+  font-size: 12px;
+  fill: #555;
+  pointer-events: none;
+}
+
+.place-readout {
+  min-height: 1.5em;
+}
+
+.ghost-key {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.ghost-key li {
+  margin: 6px 0;
+}
+
+.ghost-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  border-radius: 50%;
+  border: 2px dashed;
+  vertical-align: -2px;
+}
+
+.ghost-swatch-claude {
+  border-color: #2a5db0;
+}
+
+.ghost-swatch-audio {
+  border-color: #2e7d32;
+}
+
+.debug-panel {
+  margin: 12px 0;
+  padding: 8px 12px;
+  border: 1px dashed #999;
+  font-size: 0.85rem;
+  overflow-x: auto;
+}
+
+.debug-panel table {
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+
+.debug-panel caption {
+  text-align: left;
+  font-weight: 600;
+}
+
+.debug-panel th,
+.debug-panel td {
+  padding: 2px 8px;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.review {
+  width: min(1100px, 100% - 32px);
+  align-self: start;
+}
+
+.review-table-wrap {
+  overflow-x: auto;
+}
+
+.review-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.review-table th,
+.review-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  vertical-align: top;
+}
+
+.review-flagged td {
+  background: #fff4e0;
+}
+
+.review-flagged td:first-child {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+.review-actions {
+  white-space: nowrap;
+}
+
+.review-actions button + button {
+  margin-left: 6px;
+}
+
+.library-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 320px;
+}
+
+/* ---- DotField ---- */
+
+.jam {
+  width: min(760px, 100% - 32px);
+}
+
+/* One colour per quadrant, used by its tint, corner name and dots. */
+.q-plinks { --q: #b45309; }
+.q-hums { --q: #2e7d32; }
+.q-clicks { --q: #7b3fb5; }
+.q-whooshes { --q: #1f6fb2; }
+
+.dot-field-frame {
+  position: relative;
+  /* Square, and short enough to fit a 1280 x 720 laptop screen. */
+  width: min(100%, max(360px, 72vh), 720px);
+  aspect-ratio: 1;
+}
+
+.dot-field-svg {
+  display: block;
+  cursor: grab;
+  touch-action: none; /* let d3-zoom handle pinch and drag */
+  user-select: none;
+}
+
+.dot-field-svg:active {
+  cursor: grabbing;
+}
+
+.dot-field-bg {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.dot-field-tints rect {
+  fill: var(--q);
+  opacity: 0.05;
+}
+
+.dot-field-center {
+  stroke: #000;
+  stroke-opacity: 0.12;
+}
+
+.dot-field-corners text {
+  fill: var(--q);
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.dot-field-ends text {
+  fill: #555;
+  font-size: 12px;
+}
+
+.dot {
+  cursor: pointer;
+  transition: opacity 0.4s;
+}
+
+.dot:focus {
+  outline: none;
+}
+
+.dot-hit {
+  fill: transparent;
+}
+
+.dot-mark {
+  fill: var(--q);
+  stroke: #fff;
+  stroke-width: 2;
+  /* Duration, delay and --dx / --dy are set per dot, seeded from its id. */
+  animation: dot-drift 10s ease-in-out infinite;
+}
+
+/* Every keyframe is at most |(dx, dy)| from the dot's spot, so the drift
+   never goes further than DRIFT_PX in src/field/dotField.js. */
+@keyframes dot-drift {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(var(--dx), var(--dy)); }
+  66% { transform: translate(calc(var(--dy) * -1), var(--dx)); }
+}
+
+.dot:hover .dot-mark,
+.dot:focus-visible .dot-mark {
+  animation-play-state: paused;
+  stroke: #1a1a1a;
+  stroke-width: 2.5;
+}
+
+.dot:focus-visible .dot-hit {
+  fill: none;
+  stroke: #2a5db0;
+  stroke-width: 3;
+}
+
+.dot.is-loading .dot-mark {
+  fill-opacity: 0.4;
+}
+
+.dot.is-error .dot-mark {
+  fill: #b00020;
+}
+
+.dot.is-used {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-mark { animation: none; }
+  .dot { transition: none; }
+}
+
+.dot-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dot-tooltip.is-below {
+  transform: translate(-50%, 0);
+}
+
+.dot-tooltip strong {
+  font-size: 15px;
+}
+
+.dot-tooltip em {
+  color: #bbb;
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.zoom-controls button {
+  min-width: 2.25em;
+}
