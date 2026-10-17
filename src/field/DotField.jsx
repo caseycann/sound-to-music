@@ -13,13 +13,14 @@ const NO_STATES = {}
 //   usedIds: Set of ids that are faded out and can't be picked
 //   states:  { [id]: 'loading' | 'error' } for per-dot status styling
 //   onPick(sound): click, or Enter / Space on a focused dot
-export default function DotField({ sounds, usedIds = NO_IDS, states = NO_STATES, onPick, label = 'Sounds' }) {
+//   highlight: outline the field, e.g. while a pick will add a track
+export default function DotField({ sounds, usedIds = NO_IDS, states = NO_STATES, onPick, highlight = false, label = 'Sounds' }) {
   const [frameRef, size] = useElementWidth()
   const svgRef = useRef(null)
   const field = useDotField({ svgRef, size, sounds, usedIds, states, onPick })
 
   return (
-    <div className="dot-field">
+    <div className={highlight ? 'dot-field is-highlighted' : 'dot-field'}>
       <div ref={frameRef} className="dot-field-frame">
         <DotFieldFrame ref={svgRef} size={size} label={label} />
         {field.active && <DotTooltip {...field.active} fieldSize={size} />}

@@ -7,6 +7,7 @@ import JoinScreen from './components/JoinScreen.jsx'
 import AddSound from './components/AddSound.jsx'
 import JamSection from './components/jam/JamSection.jsx'
 import ReviewPage from './review/ReviewPage.jsx'
+import { DEBUG } from './debug.js'
 
 export default function App() {
   // The teacher page needs no class code, so it sits outside the session.
@@ -36,7 +37,8 @@ function Screen() {
       <ClassBadge />
       <AddSound />
       <JamSection />
-      <AudioTestPage />
+      {/* Its test track joins the jam's tracks, so keep it out of students' way. */}
+      {DEBUG && <AudioTestPage />}
     </SuperSonicProvider>
   )
 }
