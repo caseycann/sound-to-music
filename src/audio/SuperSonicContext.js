@@ -4,9 +4,11 @@ export const SuperSonicContext = createContext(null)
 
 // Engine:    status ('idle' | 'loading' | 'ready' | 'error'), error, start,
 //            loadSample(bufferNumber, url), playOnce(bufferNumber)
-// Tracks:    tracks, addTrack(bufferNumber, overrides) -> id,
-//            updateTrack(id, patch), removeTrack(id)   (model in tracks.js)
-// Transport: bpm, setBpm, playing, play(), stop()
+// Jam:       jam ({ bpm, tracks, usedIds }, see jam.js), tracks, bpm,
+//            usedIds (a Set), canAddTrack, addTrack(bufferNumber, overrides)
+//            -> id | null, updateTrack(id, patch), removeTrack(id), setBpm
+//            (track model in tracks.js)
+// Transport: playing, currentBar (0–3 while playing, else null), play(), stop()
 // Export:    recordBars(n) -> Promise<Blob | null>   (see barRecorder.js)
 export function useSuperSonic() {
   const value = useContext(SuperSonicContext)

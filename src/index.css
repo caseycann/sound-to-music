@@ -301,7 +301,154 @@ main {
 /* ---- DotField ---- */
 
 .jam {
-  width: min(760px, 100% - 32px);
+  width: min(1180px, 100% - 32px);
+}
+
+/* Field on the left, track panel beside it; stacked on narrow screens. */
+.jam-board {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(300px, 400px);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .jam-board { grid-template-columns: minmax(0, 1fr); }
+}
+
+.pick-prompt {
+  margin: 0 0 8px;
+  min-height: 2.6em;
+}
+
+.pick-prompt.is-picking > [role='status'] {
+  font-weight: 600;
+  color: #2a5db0;
+}
+
+.pick-prompt-hint {
+  display: block;
+  font-size: 13px;
+  color: #555;
+}
+
+/* "+ Instrument": the field waits for a pick. */
+.dot-field.is-highlighted .dot-field-frame {
+  outline: 3px solid #2a5db0;
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 8px rgb(42 93 176 / 0.15);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dot-field.is-highlighted .dot-field-frame {
+    animation: field-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes field-pulse {
+  50% { box-shadow: 0 0 0 4px rgb(42 93 176 / 0.08); }
+}
+
+.track-panel {
+  max-height: max(400px, 80vh);
+  overflow-y: auto;
+}
+
+.track-panel h3 {
+  margin-top: 0;
+}
+
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.add-instrument {
+  font-weight: 600;
+}
+
+.track-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.track-row {
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.track-row legend {
+  font-weight: 600;
+  font-size: 17px;
+  padding: 0 4px;
+}
+
+.track-row.is-muted .track-controls {
+  opacity: 0.5;
+}
+
+.track-row-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.bar-toggles {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.bar-toggle {
+  width: 2.5em;
+  height: 2em;
+  border: 2px solid #2a5db0;
+  border-radius: 4px;
+  background: #fff;
+  color: #2a5db0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bar-toggle[aria-pressed='true'] {
+  background: #2a5db0;
+  color: #fff;
+}
+
+/* The bar that is sounding now. */
+.bar-toggle.is-now {
+  outline: 3px solid #b45309;
+  outline-offset: 1px;
+}
+
+.track-row.is-muted .bar-toggles {
+  opacity: 0.5;
+}
+
+.remove-confirm {
+  font-size: 13px;
+}
+
+.track-controls {
+  display: grid;
+  gap: 2px;
+  font-size: 14px;
+}
+
+.track-controls input[type='range'] {
+  vertical-align: middle;
+  width: 130px;
 }
 
 /* One colour per quadrant, used by its tint, corner name and dots. */

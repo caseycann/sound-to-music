@@ -15,7 +15,12 @@ export default function AudioTestPage() {
       {error && <p role="alert">Could not load the test sound: {error.message}</p>}
       <PlayTestSoundButton bufferNumber={TEST_BUFFER} disabled={!track} />
       <TransportControls />
-      {track && <TrackControls track={track} />}
+      {track && (
+        <fieldset>
+          <legend>Test track (buffer {track.bufferNumber})</legend>
+          <TrackControls track={track} />
+        </fieldset>
+      )}
       <RecordControls />
     </section>
   )

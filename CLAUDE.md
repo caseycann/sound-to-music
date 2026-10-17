@@ -2,7 +2,7 @@
 
 A web app for 8th and 9th graders (about ages 13–15). Students record short found sounds, describe them, and jam together with the whole class's sound library. Treat privacy as a first-class requirement: these users are minors.
 
-> Status: joining a class, adding a sound (upload → trim → describe → save → place), the teacher review page, the SuperSonic engine test page and the class library (play any Approved sound from the field) are built. Looping in the jam, anonymous student IDs and the Students/Jams tables are still the plan.
+> Status: joining a class, adding a sound (upload → trim → describe → save → place), the teacher review page, the SuperSonic engine test page (`?debug` only), the class library on the field and looping tracks in the jam are built. Jam export in the student UI, saving recipes, anonymous student IDs and the Students/Jams tables are still the plan.
 
 ## Product
 
@@ -47,11 +47,18 @@ After Start, the Jam section fetches `/api/library` (GET, class code in the `X-C
 
 Samples load **lazily, on first click**, not all at Start: the library has no size limit, SuperSonic allows 1024 buffers by default (`numBuffers`), and each 3 s clip decodes to ~576 KB of float32. `src/audio/samplePool.js` hands out buffers 16–143 (128 slots, ~74 MB) and unloads the least recently used sound when full, never one a track is looping or one still loading. Buffers 0 (test sound) and 1 (upload preview) are reserved.
 
-### Jam (planned)
-- Clicking a dot loops that sound.
-- Controls: **BPM**, **pitch**, **attack**, **release**.
-- **"+ Instrument"** adds another layer (another looping sound with its own controls).
-- The jam can be **exported as audio**.
+### Jam (built, except export)
+The field sits beside a **track panel** (`src/components/jam/`).
+
+- **Picking:** while the field is *picking* (no tracks yet, or after **"+ Instrument"**, which outlines the field), a pick loads the sound, adds a Track for it, marks it used, and starts the shared bar clock; the track comes in on the next bar. Otherwise a click just plays the sound once, to audition it (doesn't use it up). The rules are in `useJamPicks.js`.
+- **At most 8 tracks** (`MAX_TRACKS`). Removing a track asks first and does **not** return its sound to the field: `usedIds` only grows (rule 4).
+- **4-bar loop:** each track has four bar buttons (`bars`, all on by default; `LOOP_BARS` in `limits.js`). The bar clock numbers every bar from 0 at Play, including bars it skips when a background tab is throttled, and a track only fires in the bars that are on. The bar now sounding is outlined (`currentBar` from the provider). Tracks added mid-loop join wherever the loop is.
+- **Start** (per track, `offset`): where in the bar the track first sounds, in quarter beats after the bar line (`OFFSET` in `limits.js`: 0 = beat 1, up to 3.75 = beat 4¾). Stored in beats, so it stays put when the BPM changes. Hits after the bar line are sent as their own timed bundles.
+- **Loop whole bar** (per track, `loop`): off, the sample plays once at the bar line and may ring into the next bar; on, it restarts each time it ends from the Start point and is cut at the bar line with a 10 ms fade (`barPasses` in `tracks.js`, at most 64 passes a bar). The later passes are sent as timed bundles when the bar is scheduled.
+- **Panel:** global **BPM** and **Play all / Stop all**; per track: the onomatopoeia, **Mute**, **Loop whole bar**, **Remove**, the four bar buttons, and **start**, **pitch** (semitones), **attack**, **release**, **volume**, **cutoff** and **reverb** sliders. Cutoff and reverb change what is sounding at once (`/n_set` on the track's group, 50 ms glide); the other sliders are heard from the track's next bar. Mute and Remove fade the track out at once.
+- **State:** the whole jam is one reducer, `jamReducer` in `src/audio/jam.js`: `{ bpm, tracks, usedIds }`, with values clamped to `limits.js`. `toRecipe(jam)` gives what a saved recipe would hold (BPM and each track's soundId and settings, no buffer numbers). The provider keeps it with `useJam`, whose ref updates on dispatch so the bar clock sees a new track before the next render.
+- **Engine:** each track's synths go in their own scsynth group (`trackGroups.js`, 101–999) inside `LOOP_GROUP`, so one track can be faded and freed alone. The group holds the track's players, which write to the track's own stereo bus (16, 18, …), and at its tail a `sonic-pi-fx_reverb` that reads that bus and writes to the speakers; `mix` is the Reverb slider (0 = dry) and the room size is `REVERB_ROOM`. Cutoff is the players' `lpf` (a MIDI note, 40–130; the filter is always on, since 0 would switch it off and a glide from 0 would sweep). Mute and Remove free the track's group, which also cancels loop passes already sent for that bar (scsynth logs "Group not found" for them); the track gets a new group and reverb the next time it plays. Stop purges, frees every track group with `/g_freeAll`, and forgets them.
+- **Export** (planned for students): `recordBars` already exists and is on the `?debug` test page.
 
 ## Stack
 
@@ -93,12 +100,12 @@ src/
     uploader/        pick a file, choose up to 3 s, preview the clip
     describe/        the three-word form and the success screen
     place/           the student places their sound; ghost dots and key
-  audio/             SuperSonic provider, clip processing, Meyda features
+  audio/             SuperSonic provider, jam reducer, track groups, clip processing, Meyda features
   field/             D3 field pieces (FieldFrame, FieldDot, scale, placement hook; DotField for the Jam)
   session/           class code join and storage
   review/            teacher /review page: PIN form, pending list, approve/reject
   library/           fetch the class library; load its samples on first click
-  components/jam/    Jam section: the class library on a DotField
+  components/jam/    Jam section: the library on a DotField, the track panel, picking rules
   sound/             saveSound.js: sign → upload → record → place, and saving the student's spot
 api/
   _lib/              auth, airtable, cloudinary, placement (prompt, schema, blend), sounds, library (cache)
