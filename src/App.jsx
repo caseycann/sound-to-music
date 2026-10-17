@@ -1,7 +1,13 @@
+import SuperSonicProvider from './audio/SuperSonicProvider.jsx'
+import AudioTestPage from './components/AudioTestPage.jsx'
+
 export default function App() {
   return (
-    <main>
-      <h1>Found Sound Interface</h1>
-    </main>
+    <SuperSonicProvider>
+      <main>
+        <h1>Discovered Sound Interface</h1>
+        <AudioTestPage />
+      </main>
+    </SuperSonicProvider>
   )
 }

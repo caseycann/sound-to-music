@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-supersonic.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-supersonic.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -13,7 +15,9 @@
     "meyda": "^5.6.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "supersonic-scsynth": "^0.91.0"
+    "supersonic-scsynth": "0.91.0",
+    "supersonic-scsynth-core": "0.91.0",
+    "supersonic-scsynth-synthdefs": "0.91.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.7.0",
