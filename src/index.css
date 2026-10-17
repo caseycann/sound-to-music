@@ -54,7 +54,11 @@ main {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 16px 0 48px;
+  padding: 64px 0 48px; /* room for the class badge in the top right */
+}
+
+@media (max-width: 900px) {
+  main { padding-top: 16px; } /* the badge sits in the flow there */
 }
 
 ::selection {
@@ -62,16 +66,6 @@ main {
 }
 
 /* ---- Text ---- */
-
-h1 {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  letter-spacing: 0.02em;
-  background: linear-gradient(90deg, var(--whooshes), var(--clicks) 35%, var(--plinks) 65%, var(--hums));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 14px rgb(var(--clicks-rgb) / 0.35));
-}
 
 /* ---- Section headings ("Add a sound", "Jam", …) ----
    Each section's heading takes its colour from --q. The style comes from
@@ -456,6 +450,7 @@ progress {
 .button-row {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin: 8px 0;
 }
@@ -732,6 +727,10 @@ progress {
   margin-left: 6px;
 }
 
+.library-error {
+  text-align: center;
+}
+
 .library-loading {
   display: flex;
   flex-direction: column;
@@ -803,12 +802,15 @@ progress {
 .transport {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 8px 16px;
   margin-bottom: 8px;
 }
 
 .add-instrument {
+  display: block;
+  margin: 0 auto;
   font-weight: 700;
   color: var(--accent-2);
   border-color: var(--accent-2);
@@ -862,6 +864,7 @@ progress {
 .track-row-buttons {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
@@ -874,6 +877,7 @@ progress {
 
 .bar-toggles {
   display: flex;
+  justify-content: center;
   gap: 6px;
   margin-bottom: 8px;
 }
@@ -1128,6 +1132,7 @@ progress {
 
 .zoom-controls {
   display: flex;
+  justify-content: center;
   gap: 6px;
   margin: 8px 0;
 }

@@ -16,7 +16,7 @@ export default function JamLibrary() {
   }
   if (status === 'error') {
     return (
-      <div>
+      <div className="library-error">
         <p role="alert">{error.message}</p>
         <button onClick={retry}>Try again</button>
       </div>

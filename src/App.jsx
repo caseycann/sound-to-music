@@ -23,7 +23,8 @@ export default function App() {
   return (
     <SessionProvider>
       <main>
-        <h1>Discovered Sound Interface</h1>
+        {/* Not shown, but screen readers still get the page's name. */}
+        <h1 className="visually-hidden">Discovered Sound Interface</h1>
         <Screen />
         {DEBUG && <HeadingStylePicker />}
       </main>
