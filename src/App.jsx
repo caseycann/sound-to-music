@@ -8,6 +8,7 @@ import AddSound from './components/AddSound.jsx'
 import JamSection from './components/jam/JamSection.jsx'
 import ReviewPage from './review/ReviewPage.jsx'
 import { DEBUG } from './debug.js'
+import HeadingStylePicker from './theme/HeadingStylePicker.jsx'
 
 export default function App() {
   // The teacher page needs no class code, so it sits outside the session.
@@ -15,6 +16,7 @@ export default function App() {
     return (
       <main>
         <ReviewPage />
+        {DEBUG && <HeadingStylePicker />}
       </main>
     )
   }
@@ -23,6 +25,7 @@ export default function App() {
       <main>
         <h1>Discovered Sound Interface</h1>
         <Screen />
+        {DEBUG && <HeadingStylePicker />}
       </main>
     </SessionProvider>
   )

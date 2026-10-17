@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { scaleLinear, select, zoom, zoomIdentity } from 'd3'
 import { QUADRANTS } from '../../shared/quadrants.js'
 import { dotLabel, dotLayout, inTabOrder, resizeTransform } from './dotField.js'
+import { splash } from './splash.js'
 
 export const PAD = 28 // px around the plot, for the axis labels
 const MAX_ZOOM = 8
@@ -15,13 +16,15 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
 //
 // Returns active (the dot under the pointer or keyboard focus, with its
 // position in px), and zoomIn / zoomOut / resetZoom for the buttons.
-export function useDotField({ svgRef, size, sounds, usedIds, states, onPick }) {
+// A pick ripples out from the dot; with highlight on (the pick adds a
+// track) it bursts instead.
+export function useDotField({ svgRef, size, sounds, usedIds, states, onPick, highlight }) {
   const [transform, setTransform] = useState(zoomIdentity)
   const [activeId, setActiveId] = useState(null)
   const zoomRef = useRef(null)
   const sizeRef = useRef(size)
   const live = useRef({}) // latest values for the D3 event handlers
-  live.current = { usedIds, onPick, transform }
+  live.current = { usedIds, onPick, transform, highlight }
 
   const dots = useMemo(() => inTabOrder(sounds.map(dotLayout)), [sounds])
 
@@ -37,6 +40,7 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick }) {
     () => base && { x: transform.rescaleX(base.x), y: transform.rescaleY(base.y) },
     [base, transform],
   )
+  live.current.scales = scales
 
   // Zoom and pan. Re-run on resize to update the extents, keeping the view.
   useEffect(() => {
@@ -92,7 +96,13 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick }) {
   useLayoutEffect(() => {
     if (!base) return
     const pick = (d) => {
-      if (!live.current.usedIds.has(d.sound.id)) live.current.onPick?.(d.sound)
+      const { usedIds, onPick, scales, highlight } = live.current
+      if (usedIds.has(d.sound.id)) return
+      if (scales && !reducedMotion()) {
+        const layer = select(svgRef.current).select('.dot-field-effects')
+        splash(layer, { x: scales.x(d.x), y: scales.y(d.y), quadrant: d.quadrant, big: highlight })
+      }
+      onPick?.(d.sound)
     }
     const leave = (d) => setActiveId((id) => (id === d.sound.id ? null : id))
 
@@ -103,7 +113,9 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick }) {
       .join((enter) => {
         const g = enter.append('g').attr('role', 'button')
         g.append('circle').attr('class', 'dot-hit').attr('r', 13) // still target, bigger than the dot
-        g.append('circle').attr('class', 'dot-mark').attr('r', 7)
+        const body = g.append('g').attr('class', 'dot-body') // drifts
+        body.append('circle').attr('class', 'dot-halo').attr('r', 12)
+        body.append('circle').attr('class', 'dot-mark').attr('r', 7)
         return g
           .on('mouseenter', (_, d) => setActiveId(d.sound.id))
           .on('mouseleave', (_, d) => leave(d))
@@ -128,7 +140,7 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick }) {
       .attr('aria-disabled', (d) => (usedIds.has(d.sound.id) ? 'true' : null))
       .attr('aria-busy', (d) => (states[d.sound.id] === 'loading' ? 'true' : null))
       .attr('aria-label', (d) => dotLabel(d.sound, usedIds.has(d.sound.id)))
-      .select('.dot-mark')
+      .select('.dot-body')
       .style('--dx', (d) => `${d.drift.dx.toFixed(2)}px`)
       .style('--dy', (d) => `${d.drift.dy.toFixed(2)}px`)
       .style('animation-duration', (d) => `${d.drift.duration.toFixed(2)}s`)

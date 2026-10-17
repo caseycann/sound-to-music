@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { listAllRecords } from './airtable.js'
-import { CACHE_MS, approvedInClass, clearLibraryCache, getLibrary, toLibrarySound } from './library.js'
+import { CACHE_MS, approvedInClass, clearLibraryCache, getLibrary, invalidateLibrary, toLibrarySound } from './library.js'
 
 vi.mock('./airtable.js', () => ({ listAllRecords: vi.fn() }))
 
@@ -77,6 +77,17 @@ describe('getLibrary', () => {
     await getLibrary(CLASS, CACHE_MS - 1)
     expect(listAllRecords).toHaveBeenCalledTimes(1)
     await getLibrary(CLASS, CACHE_MS)
+    expect(listAllRecords).toHaveBeenCalledTimes(2)
+  })
+
+  it('fetches again after invalidateLibrary', async () => {
+    listAllRecords.mockResolvedValue([])
+    await getLibrary(CLASS, 0)
+    invalidateLibrary(['recSomeOtherClass'])
+    await getLibrary(CLASS, 1)
+    expect(listAllRecords).toHaveBeenCalledTimes(1)
+    invalidateLibrary([CLASS.id])
+    await getLibrary(CLASS, 2)
     expect(listAllRecords).toHaveBeenCalledTimes(2)
   })
 

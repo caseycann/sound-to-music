@@ -4,10 +4,13 @@ import { listAllRecords } from './airtable.js'
 import { cloudinaryConfig, wavDeliveryUrl } from './cloudinary.js'
 
 // The class's sound library for /api/library: every Approved sound, cached
-// per class for CACHE_MS. Per serverless instance; a cold start begins empty,
-// so a teacher's approval can take up to CACHE_MS to show up.
+// per class for CACHE_MS so a class polling the library doesn't hammer
+// Airtable. Endpoints that change a sound's Status or Final X/Y call
+// invalidateLibrary, so that instance answers with the change at once. The
+// cache is per serverless instance, though: another instance can still hold
+// the old library, for up to CACHE_MS.
 
-export const CACHE_MS = 5 * 60_000
+export const CACHE_MS = 30_000
 
 // Class ID -> { promise, expires }. Holding the promise means requests that
 // arrive while Airtable is still paging share one fetch.
@@ -29,6 +32,11 @@ export function getLibrary(cls, now = Date.now()) {
 
 export function clearLibraryCache() {
   cache.clear()
+}
+
+// Drops the cached library of each class in classIds (Airtable record IDs).
+export function invalidateLibrary(classIds = []) {
+  for (const id of classIds) cache.delete(id)
 }
 
 async function fetchLibrary(cls) {

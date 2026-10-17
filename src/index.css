@@ -1,18 +1,453 @@
+/* ---- Theme: dark, with neon colour ----
+   The only colours are the four quadrant colours (--plinks, --hums,
+   --clicks, --whooshes), plus neutral greys, black and white. Everything
+   else is a role pointing at one of them. Each also has an *-rgb token for
+   see-through glows: rgb(var(--hums-rgb) / 0.4). */
+
 :root {
-  font-family: system-ui, sans-serif;
-  color: #1a1a1a;
-  background: #fafafa;
+  color-scheme: dark; /* native inputs, scrollbars and range sliders go dark too */
+  --bg: #06060b;
+  --surface: #0e0e18;
+  --surface-2: #161624;
+  --border: #26263a;
+  --border-strong: #3a3a58;
+  --text: #ecebff;
+  --muted: #9d9cba;
+  --plinks-rgb: 255 181 71; /* amber */
+  --hums-rgb: 77 255 166; /* mint */
+  --clicks-rgb: 192 139 255; /* violet */
+  --whooshes-rgb: 77 201 255; /* sky */
+  --plinks: rgb(var(--plinks-rgb));
+  --hums: rgb(var(--hums-rgb));
+  --clicks: rgb(var(--clicks-rgb));
+  --whooshes: rgb(var(--whooshes-rgb));
+
+  /* Roles */
+  --accent: var(--whooshes); /* focus, picking, primary actions */
+  --accent-glow: rgb(var(--whooshes-rgb) / 0.45);
+  --accent-2: var(--clicks); /* highlights */
+  --accent-2-glow: rgb(var(--clicks-rgb) / 0.45);
+  --danger: var(--plinks); /* errors and flags */
+  --danger-glow: rgb(var(--plinks-rgb) / 0.4);
+  --warning-bg: rgb(var(--plinks-rgb) / 0.1);
+
+  --glow-text: 0 0 6px currentColor, 0 0 18px currentColor;
+  --radius: 10px;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  accent-color: var(--accent);
 }
 
 body {
   margin: 0;
+  background:
+    radial-gradient(1100px 700px at 10% -10%, rgb(var(--clicks-rgb) / 0.1), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgb(var(--whooshes-rgb) / 0.08), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 main {
   min-height: 100vh;
   display: grid;
   place-items: center;
+  padding: 16px 0 48px;
 }
+
+::selection {
+  background: rgb(var(--clicks-rgb) / 0.4);
+}
+
+/* ---- Text ---- */
+
+h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, var(--whooshes), var(--clicks) 35%, var(--plinks) 65%, var(--hums));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgb(var(--clicks-rgb) / 0.35));
+}
+
+/* ---- Section headings ("Add a sound", "Jam", …) ----
+   Each section's heading takes its colour from --q. The style comes from
+   data-heading on <html> (src/theme/headingStyle.js); "neon" is the
+   default, with no attribute. */
+
+h2 {
+  --q: var(--whooshes);
+  --q-glow: color-mix(in srgb, var(--q) 55%, transparent);
+  --glow: 1; /* scales every glow on the heading; the step boxes use half */
+  margin: 0.4em 0 0.6em;
+}
+
+.uploader h2,
+.place-sound h2 { --q: var(--plinks); }
+.jam h2 { --q: var(--hums); }
+.review h2 { --q: var(--clicks); }
+
+/* Step headings: centred in a glowing box in the section's colour, on top
+   of whichever heading style is picked. Half glow at rest; a box that is a
+   button (.is-action) lights up fully and lifts on hover or focus. */
+h2.step-heading {
+  --glow: 0.5;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0.4em auto 0.9em;
+  padding: 0.35em 1.1em;
+  text-align: center;
+  border: 2px solid var(--q);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--q) 6%, transparent);
+  box-shadow:
+    0 0 calc(16px * var(--glow)) var(--q-glow),
+    inset 0 0 calc(16px * var(--glow)) color-mix(in srgb, var(--q) 25%, transparent);
+  transition: box-shadow 0.2s, text-shadow 0.2s, background 0.2s, transform 0.15s;
+}
+
+/* The button fills the box and looks like the heading text. Buttons don't
+   inherit text styles by default, so pass them all through. */
+h2.step-heading.is-action {
+  padding: 0;
+}
+
+h2.step-heading.is-action button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  padding: 0.35em 1.1em 0.4em;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-shadow: inherit;
+  -webkit-text-stroke: inherit;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+h2.step-heading.is-action button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+h2.step-heading.is-action button:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+h2.step-heading.is-action button:focus-visible {
+  outline: none; /* the box lights up instead */
+}
+
+h2.step-heading.is-action:hover,
+h2.step-heading.is-action:focus-within {
+  --glow: 1;
+  background: color-mix(in srgb, var(--q) 12%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Keyboard focus also gets a white ring, so it is clear without hover. */
+h2.step-heading.is-action:has(button:focus-visible) {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.step-heading-title {
+  display: block;
+}
+
+/* The small line under the title saying what the box does. */
+.step-heading-hint {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+  color: var(--muted);
+}
+
+h2.step-heading.is-action:hover .step-heading-hint,
+h2.step-heading.is-action:focus-within .step-heading-hint {
+  color: var(--text);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.step-heading-number {
+  opacity: 0.75;
+}
+
+/* In the "dots" style, the heading is a flex row; centre it in the box. */
+[data-heading='dots'] h2.step-heading {
+  justify-content: center;
+}
+
+/* With a button inside, the dots go on the title line instead. */
+[data-heading='dots'] h2.step-heading.is-action::before {
+  display: none;
+}
+
+[data-heading='dots'] h2.step-heading.is-action .step-heading-title::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 62px;
+  vertical-align: 0.15em;
+  border-radius: 50%;
+  background: var(--whooshes);
+  box-shadow: 17px 0 var(--clicks), 34px 0 var(--plinks), 51px 0 var(--hums);
+}
+
+[data-heading='dots'] h2.step-heading .step-heading-number {
+  margin-right: 0.3em;
+}
+
+/* neon: a lit sign in the section's colour, flickering on when it appears. */
+:root:not([data-heading]) h2,
+[data-heading='neon'] h2 {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--q) 35%, #fff);
+  text-shadow:
+    0 0 calc(4px * var(--glow)) var(--q),
+    0 0 calc(14px * var(--glow)) var(--q),
+    0 0 calc(34px * var(--glow)) var(--q-glow);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-heading]) h2,
+  [data-heading='neon'] h2 {
+    animation: neon-on 1.1s ease-out both;
+  }
+}
+
+@keyframes neon-on {
+  0% { opacity: 0.15; }
+  8% { opacity: 1; }
+  12% { opacity: 0.3; }
+  20% { opacity: 1; }
+  28% { opacity: 0.55; }
+  36%, 100% { opacity: 1; }
+}
+
+/* stripe: white text over a bar of the four quadrant colours. */
+[data-heading='stripe'] h2 {
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  letter-spacing: 0.03em;
+  color: var(--text);
+  text-shadow: 0 0 calc(16px * var(--glow)) var(--q-glow);
+}
+
+[data-heading='stripe'] h2::after {
+  content: '';
+  display: block;
+  width: 136px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: linear-gradient(90deg,
+    var(--whooshes) 0 25%, var(--clicks) 25% 50%, var(--plinks) 50% 75%, var(--hums) 75%);
+  box-shadow: 0 0 calc(12px * var(--glow)) var(--q-glow);
+}
+
+/* outline: big hollow letters drawn in the section's colour. */
+[data-heading='outline'] h2 {
+  font-size: clamp(1.9rem, 4.2vw, 2.8rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--q);
+  text-shadow: 0 0 calc(18px * var(--glow)) var(--q-glow);
+}
+
+/* dots: the four quadrant dots, then the heading glowing softly. */
+[data-heading='dots'] h2 {
+  display: flex;
+  align-items: center;
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  color: var(--text);
+  text-shadow: 0 0 calc(12px * var(--glow)) var(--q-glow);
+}
+
+[data-heading='dots'] h2::before {
+  content: '';
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-right: 62px; /* room for the three dots drawn by box-shadow */
+  border-radius: 50%;
+  background: var(--whooshes);
+  box-shadow: 17px 0 var(--clicks), 34px 0 var(--plinks), 51px 0 var(--hums);
+}
+
+.heading-style-picker {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 10;
+  padding: 6px 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 13px;
+}
+
+/* ---- Class badge: top right, or above the title on narrow screens ---- */
+
+.class-badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: rgb(14 14 24 / 0.85);
+  box-shadow: 0 0 16px rgb(var(--whooshes-rgb) / 0.15);
+  font-size: 14px;
+}
+
+.class-badge-label {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+}
+
+.class-badge-name {
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent-glow);
+}
+
+.class-badge button {
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .class-badge {
+    position: static;
+    justify-self: end;
+    margin: 0 16px;
+  }
+}
+
+h3 {
+  color: var(--accent-2);
+  text-shadow: 0 0 10px var(--accent-2-glow);
+}
+
+a {
+  color: var(--accent);
+}
+
+legend,
+label {
+  color: var(--text);
+}
+
+[role='alert'] {
+  color: var(--danger);
+  text-shadow: 0 0 8px var(--danger-glow);
+}
+
+/* ---- Controls ---- */
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s, transform 0.08s;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: rgb(var(--whooshes-rgb) / 0.12);
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent-glow);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+input:not([type='range']),
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+input:not([type='range']):focus-visible,
+select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  outline: none;
+}
+
+output {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+progress {
+  accent-color: var(--accent);
+}
+
+/* ---- Add a sound ---- */
 
 .uploader {
   width: min(720px, 100% - 32px);
@@ -31,7 +466,7 @@ main {
 
 .waveform-label {
   font-size: 0.85rem;
-  color: #555;
+  color: var(--muted);
 }
 
 .waveform-track {
@@ -46,9 +481,10 @@ main {
   display: block;
   width: 100%;
   height: 96px;
-  background: #fff;
-  border: 1px solid #ccc;
-  color: #2a5db0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--accent); /* WaveformCanvas draws with this colour */
 }
 
 .waveform-selection {
@@ -57,8 +493,9 @@ main {
   bottom: 0;
   min-width: 12px;
   box-sizing: border-box;
-  background: rgb(255 170 0 / 0.25);
-  border: 2px solid #e08a00;
+  background: rgb(var(--plinks-rgb) / 0.18);
+  border: 2px solid var(--plinks);
+  box-shadow: 0 0 14px rgb(var(--plinks-rgb) / 0.4);
   cursor: grab;
 }
 
@@ -80,13 +517,13 @@ main {
 
 .waveform-selection:focus-visible,
 .waveform-handle:focus-visible {
-  outline: 3px solid #2a5db0;
+  outline: 3px solid var(--accent);
 }
 
 .describe-form {
   margin-top: 16px;
   padding-top: 8px;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border);
 }
 
 .word-field {
@@ -102,22 +539,19 @@ main {
 
 .word-hint {
   font-size: 0.85rem;
-  color: #555;
-}
-
-.word-field input {
-  font: inherit;
-  padding: 6px 8px;
+  color: var(--muted);
 }
 
 .word-field input[aria-invalid] {
-  border-color: #b3261e;
+  border-color: var(--danger);
 }
 
 .word-error {
   font-size: 0.85rem;
-  color: #b3261e;
+  color: var(--danger);
 }
+
+/* ---- Place your sound (FieldFrame) ---- */
 
 .place-sound {
   width: min(560px, 100% - 32px);
@@ -137,33 +571,33 @@ main {
 }
 
 .field-placing:focus-visible {
-  outline: 3px solid #2a5db0;
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
 .field-bg {
-  fill: #fff;
-  stroke: #ccc;
+  fill: var(--surface);
+  stroke: var(--border-strong);
 }
 
 .field-grid line {
-  stroke: #f0f0f0;
+  stroke: #1b1b2b;
 }
 
 .field-axis {
-  stroke: #ccc;
+  stroke: var(--border-strong);
 }
 
 .field-quadrant {
   font-size: 16px;
-  fill: #bbb;
+  fill: #4a4a68;
   text-anchor: middle;
   dominant-baseline: middle;
 }
 
 .field-end {
   font-size: 12px;
-  fill: #555;
+  fill: var(--muted);
   text-anchor: middle;
 }
 
@@ -172,25 +606,25 @@ main {
 }
 
 .field-dot-student circle {
-  fill: #e08a00;
-  stroke: #fff;
+  fill: var(--plinks);
+  stroke: var(--bg);
 }
 
 .field-dot-claude circle {
-  fill: rgb(42 93 176 / 0.12);
-  stroke: #2a5db0;
+  fill: rgb(var(--whooshes-rgb) / 0.12);
+  stroke: var(--accent);
   stroke-dasharray: 4 3;
 }
 
 .field-dot-audio circle {
-  fill: rgb(46 125 50 / 0.12);
-  stroke: #2e7d32;
+  fill: rgb(var(--hums-rgb) / 0.12);
+  stroke: var(--hums);
   stroke-dasharray: 4 3;
 }
 
 .field-dot-label {
   font-size: 12px;
-  fill: #555;
+  fill: var(--muted);
   pointer-events: none;
 }
 
@@ -219,17 +653,17 @@ main {
 }
 
 .ghost-swatch-claude {
-  border-color: #2a5db0;
+  border-color: var(--accent);
 }
 
 .ghost-swatch-audio {
-  border-color: #2e7d32;
+  border-color: var(--hums);
 }
 
 .debug-panel {
   margin: 12px 0;
   padding: 8px 12px;
-  border: 1px dashed #999;
+  border: 1px dashed var(--border-strong);
   font-size: 0.85rem;
   overflow-x: auto;
 }
@@ -251,6 +685,8 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- Teacher review ---- */
+
 .review {
   width: min(1100px, 100% - 32px);
   align-self: start;
@@ -263,23 +699,28 @@ main {
 .review-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
+  background: var(--surface);
+  border-radius: var(--radius);
 }
 
 .review-table th,
 .review-table td {
   padding: 6px 8px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: top;
 }
 
+.review-table th {
+  color: var(--muted);
+}
+
 .review-flagged td {
-  background: #fff4e0;
+  background: var(--warning-bg);
 }
 
 .review-flagged td:first-child {
-  color: #b3261e;
+  color: var(--danger);
   font-weight: 600;
 }
 
@@ -298,7 +739,7 @@ main {
   max-width: 320px;
 }
 
-/* ---- DotField ---- */
+/* ---- Jam ---- */
 
 .jam {
   width: min(1180px, 100% - 32px);
@@ -323,21 +764,20 @@ main {
 
 .pick-prompt.is-picking > [role='status'] {
   font-weight: 600;
-  color: #2a5db0;
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-glow);
 }
 
 .pick-prompt-hint {
   display: block;
   font-size: 13px;
-  color: #555;
+  color: var(--muted);
 }
 
 /* "+ Instrument": the field waits for a pick. */
 .dot-field.is-highlighted .dot-field-frame {
-  outline: 3px solid #2a5db0;
-  outline-offset: 2px;
-  border-radius: 4px;
-  box-shadow: 0 0 0 8px rgb(42 93 176 / 0.15);
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px var(--accent), 0 0 28px 4px var(--accent-glow);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -347,12 +787,13 @@ main {
 }
 
 @keyframes field-pulse {
-  50% { box-shadow: 0 0 0 4px rgb(42 93 176 / 0.08); }
+  50% { box-shadow: 0 0 0 2px var(--accent), 0 0 12px 1px rgb(var(--whooshes-rgb) / 0.2); }
 }
 
 .track-panel {
   max-height: max(400px, 80vh);
   overflow-y: auto;
+  padding: 2px 6px 2px 2px;
 }
 
 .track-panel h3 {
@@ -368,7 +809,15 @@ main {
 }
 
 .add-instrument {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+  text-shadow: 0 0 8px var(--accent-2-glow);
+}
+
+.add-instrument:hover:not(:disabled) {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 14px var(--accent-2-glow);
 }
 
 .track-list {
@@ -379,21 +828,35 @@ main {
   gap: 10px;
 }
 
+/* Each row glows in its sound's quadrant colour (--q); the test sound uses cyan. */
 .track-row {
+  --q: var(--accent);
   margin: 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--q);
+  box-shadow: -4px 0 14px -6px var(--q);
 }
 
 .track-row legend {
-  font-weight: 600;
-  font-size: 17px;
-  padding: 0 4px;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 0 6px;
+  color: var(--q);
+  text-shadow: var(--glow-text);
 }
 
-.track-row.is-muted .track-controls {
-  opacity: 0.5;
+.track-row.is-muted {
+  box-shadow: none;
+}
+
+.track-row.is-muted legend {
+  text-shadow: none;
+  opacity: 0.6;
+}
+
+.track-row.is-muted .track-controls,
+.track-row.is-muted .bar-toggles {
+  opacity: 0.45;
 }
 
 .track-row-buttons {
@@ -401,49 +864,55 @@ main {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.track-row-buttons button {
+  padding: 4px 10px;
+  font-size: 14px;
 }
 
 .bar-toggles {
   display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .bar-toggle {
-  width: 2.5em;
-  height: 2em;
-  border: 2px solid #2a5db0;
-  border-radius: 4px;
-  background: #fff;
-  color: #2a5db0;
-  font-weight: 600;
-  cursor: pointer;
+  width: 2.6em;
+  height: 2.1em;
+  padding: 0;
+  border: 2px solid var(--q, var(--accent));
+  border-radius: 6px;
+  background: transparent;
+  color: var(--q, var(--accent));
+  font-weight: 700;
 }
 
 .bar-toggle[aria-pressed='true'] {
-  background: #2a5db0;
-  color: #fff;
+  background: var(--q, var(--accent));
+  color: var(--bg);
+  text-shadow: none;
+  box-shadow: 0 0 10px var(--q, var(--accent));
 }
 
 /* The bar that is sounding now. */
 .bar-toggle.is-now {
-  outline: 3px solid #b45309;
-  outline-offset: 1px;
-}
-
-.track-row.is-muted .bar-toggles {
-  opacity: 0.5;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  box-shadow: 0 0 18px 2px var(--q, var(--accent));
 }
 
 .remove-confirm {
   font-size: 13px;
+  color: var(--muted);
 }
 
 .track-controls {
   display: grid;
   gap: 2px;
   font-size: 14px;
+  accent-color: var(--q, var(--accent));
 }
 
 .track-controls input[type='range'] {
@@ -451,11 +920,13 @@ main {
   width: 130px;
 }
 
+/* ---- DotField ---- */
+
 /* One colour per quadrant, used by its tint, corner name and dots. */
-.q-plinks { --q: #b45309; }
-.q-hums { --q: #2e7d32; }
-.q-clicks { --q: #7b3fb5; }
-.q-whooshes { --q: #1f6fb2; }
+.q-plinks { --q: var(--plinks); }
+.q-hums { --q: var(--hums); }
+.q-clicks { --q: var(--clicks); }
+.q-whooshes { --q: var(--whooshes); }
 
 .dot-field-frame {
   position: relative;
@@ -476,29 +947,30 @@ main {
 }
 
 .dot-field-bg {
-  fill: #fff;
-  stroke: #ccc;
+  fill: #09090f;
+  stroke: var(--border-strong);
 }
 
 .dot-field-tints rect {
   fill: var(--q);
-  opacity: 0.05;
+  opacity: 0.07;
 }
 
 .dot-field-center {
-  stroke: #000;
-  stroke-opacity: 0.12;
+  stroke: #fff;
+  stroke-opacity: 0.14;
 }
 
 .dot-field-corners text {
   fill: var(--q);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   pointer-events: none;
 }
 
 .dot-field-ends text {
-  fill: #555;
+  fill: var(--muted);
   font-size: 12px;
 }
 
@@ -515,10 +987,8 @@ main {
   fill: transparent;
 }
 
-.dot-mark {
-  fill: var(--q);
-  stroke: #fff;
-  stroke-width: 2;
+/* The halo and the dot drift together. */
+.dot-body {
   /* Duration, delay and --dx / --dy are set per dot, seeded from its id. */
   animation: dot-drift 10s ease-in-out infinite;
 }
@@ -531,35 +1001,97 @@ main {
   66% { transform: translate(calc(var(--dy) * -1), var(--dx)); }
 }
 
+/* A soft circle behind each dot instead of a blur filter: dots drift all the
+   time, and a filter would be redrawn on every frame. */
+.dot-halo {
+  fill: var(--q);
+  opacity: 0.2;
+  transition: r 0.15s, opacity 0.15s;
+}
+
+.dot-mark {
+  fill: var(--q);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+  transition: r 0.15s;
+}
+
+.dot:hover .dot-body,
+.dot:focus-visible .dot-body {
+  animation-play-state: paused;
+}
+
+.dot:hover .dot-halo,
+.dot:focus-visible .dot-halo {
+  r: 16px;
+  opacity: 0.4;
+}
+
 .dot:hover .dot-mark,
 .dot:focus-visible .dot-mark {
-  animation-play-state: paused;
-  stroke: #1a1a1a;
-  stroke-width: 2.5;
+  r: 8.5px;
+  stroke: #fff;
+  stroke-width: 2;
 }
 
 .dot:focus-visible .dot-hit {
   fill: none;
-  stroke: #2a5db0;
-  stroke-width: 3;
+  stroke: var(--accent);
+  stroke-width: 2.5;
 }
 
-.dot.is-loading .dot-mark {
-  fill-opacity: 0.4;
+.dot.is-loading .dot-halo {
+  animation: halo-pulse 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes halo-pulse {
+  from { opacity: 0.15; }
+  to { opacity: 0.6; }
 }
 
 .dot.is-error .dot-mark {
-  fill: #b00020;
+  fill: var(--danger);
 }
 
+/* Used this session: a dim hollow ring. */
 .dot.is-used {
-  opacity: 0.15;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+.dot.is-used .dot-mark {
+  fill: transparent;
+  stroke: var(--q);
+  stroke-width: 1.5;
+}
+
+.dot.is-used .dot-halo {
+  opacity: 0;
+}
+
+/* Click effects (src/field/splash.js). */
+.dot-field-effects {
+  pointer-events: none;
+}
+
+.splash-ring {
+  fill: none;
+  stroke: var(--q);
+  stroke-width: 2.5;
+}
+
+.splash-spark {
+  fill: var(--q);
+}
+
+.splash-flash {
+  fill: #fff;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .dot-mark { animation: none; }
-  .dot { transition: none; }
+  .dot-body { animation: none; }
+  .dot, .dot-halo, .dot-mark { transition: none; }
+  .dot.is-loading .dot-halo { animation: none; opacity: 0.5; }
 }
 
 .dot-tooltip {
@@ -568,10 +1100,12 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: #1a1a1a;
-  color: #fff;
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: rgb(10 10 20 / 0.92);
+  box-shadow: 0 0 18px rgb(var(--clicks-rgb) / 0.25);
+  color: var(--text);
   font-size: 13px;
   line-height: 1.35;
   white-space: nowrap;
@@ -583,11 +1117,13 @@ main {
 }
 
 .dot-tooltip strong {
-  font-size: 15px;
+  font-size: 16px;
+  color: var(--accent-2);
+  text-shadow: 0 0 8px var(--accent-2-glow);
 }
 
 .dot-tooltip em {
-  color: #bbb;
+  color: var(--muted);
 }
 
 .zoom-controls {

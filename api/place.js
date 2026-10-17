@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { updateRecord } from './_lib/airtable.js'
 import { HttpError, withClass } from './_lib/auth.js'
 import { DEFAULT_MODEL, OUTPUT_SCHEMA, SYSTEM_PROMPT, blend, buildUserMessage, placedStatus, validatePlacement } from './_lib/placement.js'
+import { invalidateLibrary } from './_lib/library.js'
 import { getClassSound, isSet } from './_lib/sounds.js'
 
 // The only place Claude is called (CLAUDE.md).
@@ -65,6 +66,7 @@ export default withClass(async (req, res, cls) => {
     ...(!studentPlaced && { 'Final X': final.x, 'Final Y': final.y }),
     ...(status && { Status: status }),
   })
+  invalidateLibrary([cls.id]) // it may just have been Approved, or moved
 
   res.status(200).json({
     ok: true,

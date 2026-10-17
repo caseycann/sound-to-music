@@ -6,6 +6,7 @@ import { channelsOf, loudestWindow } from '../../audio/waveform.js'
 import ClipPreview from './ClipPreview.jsx'
 import FilePicker from './FilePicker.jsx'
 import SelectionStep from './SelectionStep.jsx'
+import StepHeading from '../StepHeading.jsx'
 
 // Pick a file -> choose up to 3 s of it -> preview the cleaned-up clip.
 // onClip receives { blob, samples, sampleRate, duration, analysis,
@@ -62,6 +63,8 @@ export default function Uploader({ onClip, children }) {
     setError(null)
   }
 
+  // While no file is picked, FilePicker draws the Step 1 heading as its button.
+  const picking = !busy?.opening && !clip && !upload
   let body
   if (busy?.opening) body = <p role="status">Opening {busy.opening}…</p>
   else if (clip) body = <ClipPreview clip={clip} onChooseAgain={handleChooseAgain} />
@@ -81,7 +84,7 @@ export default function Uploader({ onClip, children }) {
 
   return (
     <section className="uploader">
-      <h2>Add a sound</h2>
+      {!picking && <StepHeading step={1}>Add a sound</StepHeading>}
       {body}
       {clip && children}
     </section>

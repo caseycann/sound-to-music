@@ -17,7 +17,7 @@ const NO_STATES = {}
 export default function DotField({ sounds, usedIds = NO_IDS, states = NO_STATES, onPick, highlight = false, label = 'Sounds' }) {
   const [frameRef, size] = useElementWidth()
   const svgRef = useRef(null)
-  const field = useDotField({ svgRef, size, sounds, usedIds, states, onPick })
+  const field = useDotField({ svgRef, size, sounds, usedIds, states, onPick, highlight })
 
   return (
     <div className={highlight ? 'dot-field is-highlighted' : 'dot-field'}>
