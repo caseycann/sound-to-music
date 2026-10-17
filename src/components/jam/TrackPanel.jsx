@@ -1,5 +1,6 @@
 import { useSuperSonic } from '../../audio/SuperSonicContext.js'
 import { MAX_TRACKS } from '../../audio/jam.js'
+import { quadrantOf } from '../../../shared/quadrants.js'
 import TransportControls from '../TransportControls.jsx'
 import TrackRow from './TrackRow.jsx'
 
@@ -25,11 +26,18 @@ export default function TrackPanel({ soundsById, armed, onArm, busy }) {
         <p>No tracks yet. Pick a dot on the field to start your first one.</p>
       ) : (
         <ol className="track-list">
-          {tracks.map((track) => (
-            <li key={track.id}>
-              <TrackRow track={track} name={soundsById.get(track.soundId)?.onomatopoeia ?? 'Test sound'} />
-            </li>
-          ))}
+          {tracks.map((track) => {
+            const sound = soundsById.get(track.soundId)
+            return (
+              <li key={track.id}>
+                <TrackRow
+                  track={track}
+                  name={sound?.onomatopoeia ?? 'Test sound'}
+                  quadrant={sound && (sound.quadrant ?? quadrantOf(sound.finalX, sound.finalY))}
+                />
+              </li>
+            )
+          })}
         </ol>
       )}
     </section>

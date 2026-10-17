@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useSuperSonic } from '../../audio/SuperSonicContext.js'
 import DotField from '../../field/DotField.jsx'
 import { useLibrarySamples } from '../../library/useLibrarySamples.js'
@@ -11,7 +11,14 @@ export default function JamBoard({ sounds }) {
   const { usedIds } = useSuperSonic()
   const samples = useLibrarySamples()
   const picks = useJamPicks(samples)
-  const soundsById = useMemo(() => new Map(sounds.map((s) => [s.id, s])), [sounds])
+  // Every sound seen this session, not just the current library: a track
+  // keeps its name and colour if its sound later leaves the library (e.g.
+  // the teacher rejects it while the track is playing).
+  const seenRef = useRef(new Map())
+  const soundsById = useMemo(() => {
+    for (const s of sounds) seenRef.current.set(s.id, s)
+    return new Map(seenRef.current)
+  }, [sounds])
 
   return (
     <div className="jam-board">

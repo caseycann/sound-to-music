@@ -1,8 +1,10 @@
 import { toCoordinate } from '../../shared/position.js'
+import { notifyLibraryChanged } from '../library/libraryEvents.js'
 
 // Saves a finished clip: get a signature from /api/sign-upload, upload the
 // WAV straight to Cloudinary, record it with /api/sounds, then ask
-// /api/place for Claude's position.
+// /api/place for Claude's position. Placing (which may approve the sound)
+// and the student's own spot both tell an open Jam to refetch the library.
 
 export class SaveError extends Error {
   // status 401 means the class code stopped working; the caller should leave
@@ -42,6 +44,7 @@ export async function saveSound({ classCode, clip, words }) {
 // Saves where the student put their sound. Resolves with the stored { x, y }.
 export async function saveStudentPosition({ classCode, soundId, x, y }) {
   const saved = await postJson('/api/student-position', { classCode, soundId, x, y })
+  notifyLibraryChanged()
   return { x: saved.x, y: saved.y }
 }
 
@@ -54,6 +57,7 @@ function point(x, y) {
 async function place(classCode, soundId) {
   try {
     const { claude, audio, final, needsReview, reason } = await postJson('/api/place', { classCode, soundId })
+    notifyLibraryChanged()
     return { claude, audio, final, needsReview, reason }
   } catch (err) {
     if (err.status === 401) throw err

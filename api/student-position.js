@@ -1,6 +1,7 @@
 import { toCoordinate } from '../shared/position.js'
 import { updateRecord } from './_lib/airtable.js'
 import { HttpError, withClass } from './_lib/auth.js'
+import { invalidateLibrary } from './_lib/library.js'
 import { getClassSound, isSet } from './_lib/sounds.js'
 
 // POST { classCode, soundId, x, y } -> { ok, x, y }
@@ -22,5 +23,6 @@ export default withClass(async (req, res, cls) => {
   if (isSet(f['Student X'])) throw new HttpError(409, 'already_placed')
 
   await updateRecord('Sounds', body.soundId, { 'Student X': x, 'Student Y': y, 'Final X': x, 'Final Y': y })
+  invalidateLibrary([cls.id]) // the dot moved
   res.status(200).json({ ok: true, x, y })
 })
