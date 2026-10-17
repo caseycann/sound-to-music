@@ -1,0 +1,26 @@
+{
+  "name": "found-sound-interface",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/copy-supersonic.mjs",
+    "dev": "vite",
+    "prebuild": "node scripts/copy-supersonic.mjs",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "d3": "^7.9.0",
+    "meyda": "^5.6.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "supersonic-scsynth": "0.91.0",
+    "supersonic-scsynth-core": "0.91.0",
+    "supersonic-scsynth-synthdefs": "0.91.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^6.4.4"
+  }
+}

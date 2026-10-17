@@ -1,0 +1,16 @@
+# Env files (keep .env.example tracked)
+.env
+.env.local
+.env*.local
+
+# Dependencies / build
+node_modules/
+dist/
+.vercel/
+
+# Copied from node_modules by scripts/copy-supersonic.mjs
+public/supersonic/
+
+# OS
+.DS_Store
+.vercel
