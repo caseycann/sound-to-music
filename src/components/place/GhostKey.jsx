@@ -1,4 +1,4 @@
-import { quadrantOf } from '../../field/quadrants.js'
+import { quadrantOf } from '../../../shared/quadrants.js'
 import { formatPoint } from './formatPoint.js'
 
 // Explains the two ghost dots, with Claude's one-line reason.

@@ -10,7 +10,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { analyzeSamples } from '../src/audio/features.js'
-import { quadrantOf } from '../src/field/quadrants.js'
+import { quadrantOf } from '../shared/quadrants.js'
 import { mixToMono } from '../src/audio/process.js'
 
 const QUADRANTS = ['plinks', 'hums', 'clicks', 'whooshes']

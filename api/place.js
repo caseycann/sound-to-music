@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { updateRecord } from './_lib/airtable.js'
 import { HttpError, withClass } from './_lib/auth.js'
-import { DEFAULT_MODEL, OUTPUT_SCHEMA, SYSTEM_PROMPT, blend, buildUserMessage, validatePlacement } from './_lib/placement.js'
+import { DEFAULT_MODEL, OUTPUT_SCHEMA, SYSTEM_PROMPT, blend, buildUserMessage, placedStatus, validatePlacement } from './_lib/placement.js'
 import { getClassSound, isSet } from './_lib/sounds.js'
 
 // The only place Claude is called (CLAUDE.md).
@@ -13,7 +13,8 @@ import { getClassSound, isSet } from './_lib/sounds.js'
 // that, plus a default final position (the blend of Claude and the audio
 // estimate). The student then places it themselves; claude and audio are
 // shown to them as ghost dots. A sound that already has Claude X is never
-// re-scored; its stored positions are returned instead.
+// re-scored; its stored positions are returned instead. Placing also sets
+// Status: Approved unless Needs review is set (see placedStatus).
 
 // Lazily created so a missing key fails the request (503), not the import.
 let client
@@ -54,6 +55,7 @@ export default withClass(async (req, res, cls) => {
   // Never overwrite a spot the student already chose.
   const studentPlaced = isSet(f['Student X'])
   const reason = claude?.reason ?? 'We placed this one from the audio alone.'
+  const status = placedStatus(f.Status, final.needsReview)
   await updateRecord('Sounds', soundId, {
     // Left empty after a refusal, so the sound can be scored again later.
     ...(claude && { 'Claude X': claude.x, 'Claude Y': claude.y }),
@@ -61,6 +63,7 @@ export default withClass(async (req, res, cls) => {
     'Needs review': final.needsReview,
     Reason: reason,
     ...(!studentPlaced && { 'Final X': final.x, 'Final Y': final.y }),
+    ...(status && { Status: status }),
   })
 
   res.status(200).json({

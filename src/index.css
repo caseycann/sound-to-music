@@ -250,3 +250,205 @@ main {
   text-align: left;
   font-variant-numeric: tabular-nums;
 }
+
+.review {
+  width: min(1100px, 100% - 32px);
+  align-self: start;
+}
+
+.review-table-wrap {
+  overflow-x: auto;
+}
+
+.review-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.review-table th,
+.review-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  vertical-align: top;
+}
+
+.review-flagged td {
+  background: #fff4e0;
+}
+
+.review-flagged td:first-child {
+  color: #b3261e;
+  font-weight: 600;
+}
+
+.review-actions {
+  white-space: nowrap;
+}
+
+.review-actions button + button {
+  margin-left: 6px;
+}
+
+.library-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 320px;
+}
+
+/* ---- DotField ---- */
+
+.jam {
+  width: min(760px, 100% - 32px);
+}
+
+/* One colour per quadrant, used by its tint, corner name and dots. */
+.q-plinks { --q: #b45309; }
+.q-hums { --q: #2e7d32; }
+.q-clicks { --q: #7b3fb5; }
+.q-whooshes { --q: #1f6fb2; }
+
+.dot-field-frame {
+  position: relative;
+  /* Square, and short enough to fit a 1280 x 720 laptop screen. */
+  width: min(100%, max(360px, 72vh), 720px);
+  aspect-ratio: 1;
+}
+
+.dot-field-svg {
+  display: block;
+  cursor: grab;
+  touch-action: none; /* let d3-zoom handle pinch and drag */
+  user-select: none;
+}
+
+.dot-field-svg:active {
+  cursor: grabbing;
+}
+
+.dot-field-bg {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.dot-field-tints rect {
+  fill: var(--q);
+  opacity: 0.05;
+}
+
+.dot-field-center {
+  stroke: #000;
+  stroke-opacity: 0.12;
+}
+
+.dot-field-corners text {
+  fill: var(--q);
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.dot-field-ends text {
+  fill: #555;
+  font-size: 12px;
+}
+
+.dot {
+  cursor: pointer;
+  transition: opacity 0.4s;
+}
+
+.dot:focus {
+  outline: none;
+}
+
+.dot-hit {
+  fill: transparent;
+}
+
+.dot-mark {
+  fill: var(--q);
+  stroke: #fff;
+  stroke-width: 2;
+  /* Duration, delay and --dx / --dy are set per dot, seeded from its id. */
+  animation: dot-drift 10s ease-in-out infinite;
+}
+
+/* Every keyframe is at most |(dx, dy)| from the dot's spot, so the drift
+   never goes further than DRIFT_PX in src/field/dotField.js. */
+@keyframes dot-drift {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(var(--dx), var(--dy)); }
+  66% { transform: translate(calc(var(--dy) * -1), var(--dx)); }
+}
+
+.dot:hover .dot-mark,
+.dot:focus-visible .dot-mark {
+  animation-play-state: paused;
+  stroke: #1a1a1a;
+  stroke-width: 2.5;
+}
+
+.dot:focus-visible .dot-hit {
+  fill: none;
+  stroke: #2a5db0;
+  stroke-width: 3;
+}
+
+.dot.is-loading .dot-mark {
+  fill-opacity: 0.4;
+}
+
+.dot.is-error .dot-mark {
+  fill: #b00020;
+}
+
+.dot.is-used {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-mark { animation: none; }
+  .dot { transition: none; }
+}
+
+.dot-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dot-tooltip.is-below {
+  transform: translate(-50%, 0);
+}
+
+.dot-tooltip strong {
+  font-size: 15px;
+}
+
+.dot-tooltip em {
+  color: #bbb;
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.zoom-controls button {
+  min-width: 2.25em;
+}

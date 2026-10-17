@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import FieldDot from '../../field/FieldDot.jsx'
 import FieldFrame from '../../field/FieldFrame.jsx'
-import { quadrantOf } from '../../field/quadrants.js'
+import { quadrantOf } from '../../../shared/quadrants.js'
 import { usePointPlacement } from '../../field/usePointPlacement.js'
 import { useSession } from '../../session/SessionContext.js'
 import { SaveError, saveStudentPosition } from '../../sound/saveSound.js'

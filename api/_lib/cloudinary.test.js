@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isDeliveryUrlFor, signParams } from './cloudinary.js'
+import { isDeliveryUrlFor, signParams, wavDeliveryUrl } from './cloudinary.js'
 
 describe('signParams', () => {
   it('matches the example in Cloudinary’s signature docs', () => {
@@ -22,5 +22,13 @@ describe('isDeliveryUrlFor', () => {
     expect(isDeliveryUrlFor('https://res.cloudinary.com/demo/image/upload/v1/found-sound/abc.wav', 'demo', 'found-sound/abc')).toBe(false)
     expect(isDeliveryUrlFor('http://res.cloudinary.com/demo/video/upload/v1/found-sound/abc.wav', 'demo', 'found-sound/abc')).toBe(false)
     expect(isDeliveryUrlFor(undefined, 'demo', 'found-sound/abc')).toBe(false)
+  })
+})
+
+describe('wavDeliveryUrl', () => {
+  it('builds a WAV URL that isDeliveryUrlFor accepts', () => {
+    const url = wavDeliveryUrl('demo', 'found-sound/abc')
+    expect(url).toBe('https://res.cloudinary.com/demo/video/upload/found-sound/abc.wav')
+    expect(isDeliveryUrlFor(url, 'demo', 'found-sound/abc')).toBe(true)
   })
 })

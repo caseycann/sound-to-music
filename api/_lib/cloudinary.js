@@ -31,6 +31,15 @@ export function signParams(params, apiSecret) {
   return createHash('sha1').update(toSign + apiSecret).digest('hex')
 }
 
+// The delivery URL that serves this public ID as WAV. Cloudinary picks the
+// delivery format from the extension: our uploads are WAV already, so this is
+// the original file, and anything else would be converted to WAV. WAV is what
+// SuperSonic's decodeAudioData reads in every browser.
+export function wavDeliveryUrl(cloudName, publicId) {
+  const path = publicId.split('/').map(encodeURIComponent).join('/')
+  return `https://res.cloudinary.com/${cloudName}/${RESOURCE_TYPE}/upload/${path}.${ALLOWED_FORMATS}`
+}
+
 // True if url is a secure delivery URL for this cloud's audio with this
 // public ID, e.g. https://res.cloudinary.com/<cloud>/video/upload/v123/<publicId>.wav
 export function isDeliveryUrlFor(url, cloudName, publicId) {

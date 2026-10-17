@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { QUADRANTS } from './quadrants.js'
+import { QUADRANTS } from '../../shared/quadrants.js'
 import { PAD, SIZE, toPxX, toPxY } from './scale.js'
 
 const GRID = [-0.75, -0.5, -0.25, 0.25, 0.5, 0.75]

@@ -12,7 +12,8 @@ const MAX_FILE_NAME = 200
 // POST { classCode, publicId, secureUrl, duration, originalName,
 //        onomatopoeia, descriptor1, descriptor2, audioX, audioY }
 // -> { ok, id }. Creates a Sounds record with Status "Pending". Placement by
-// Claude (/api/place) happens separately.
+// Claude (/api/place) happens separately, and approves the sound unless it
+// needs review.
 export default withClass(async (req, res, cls) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')

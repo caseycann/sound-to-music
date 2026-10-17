@@ -1,7 +1,7 @@
 import { getRecord } from './airtable.js'
 import { HttpError } from './auth.js'
 
-const RECORD_ID = /^rec[A-Za-z0-9]{14}$/
+export const RECORD_ID =/^rec[A-Za-z0-9]{14}$/
 
 // The Sounds record's fields, for a sound in this class. Throws 400 for a
 // malformed ID and 404 if there is no such sound; a sound from another class

@@ -6,6 +6,19 @@ export async function listRecords(table, params = {}) {
   return records
 }
 
+// Like listRecords, but follows Airtable's offset to fetch every page (100
+// records each).
+export async function listAllRecords(table, params = {}) {
+  const all = []
+  let offset
+  do {
+    const page = await request(table, offset ? { ...params, offset } : params)
+    all.push(...page.records)
+    offset = page.offset
+  } while (offset)
+  return all
+}
+
 // Resolves to the created record ({ id, fields, createdTime }).
 export async function createRecord(table, fields) {
   return request(table, {}, { method: 'POST', body: JSON.stringify({ fields }) })

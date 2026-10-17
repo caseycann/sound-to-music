@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { quadrantOf } from '../field/quadrants.js'
+import { quadrantOf } from '../../shared/quadrants.js'
 import { analyzeSamples, envelopeTimes, frames, mapToField, pitchClarity, scoreTerm } from './features.js'
 
 const RATE = 44100

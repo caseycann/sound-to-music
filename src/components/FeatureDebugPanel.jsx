@@ -1,4 +1,4 @@
-import { quadrantOf } from '../field/quadrants.js'
+import { quadrantOf } from '../../shared/quadrants.js'
 
 // Raw audio features and where they put the sound. Shown only with ?debug.
 export default function FeatureDebugPanel({ analysis }) {

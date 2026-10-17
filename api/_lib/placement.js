@@ -83,6 +83,14 @@ export function validatePlacement(raw) {
   }
 }
 
+// The Status a sound gets once placed, or null to leave it alone. Only
+// flagged sounds wait for the teacher; the rest are auto-approved. A
+// teacher's decision (Approved / Rejected) is never changed.
+export function placedStatus(currentStatus, needsReview) {
+  if (currentStatus && currentStatus !== 'Pending') return null
+  return needsReview ? 'Pending' : 'Approved'
+}
+
 // Default position from Claude's placement and the in-browser audio estimate.
 // The student then places the sound themselves (api/student-position.js),
 // which replaces it; this is what the field shows if they never do.

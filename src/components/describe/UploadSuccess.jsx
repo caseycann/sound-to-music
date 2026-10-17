@@ -1,4 +1,4 @@
-import { quadrantOf } from '../../field/quadrants.js'
+import { quadrantOf } from '../../../shared/quadrants.js'
 
 // Shown after the student has saved their sound's spot.
 export default function UploadSuccess({ words, position, onAnother }) {

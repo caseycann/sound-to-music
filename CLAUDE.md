@@ -2,7 +2,7 @@
 
 A web app for 8th and 9th graders (about ages 13–15). Students record short found sounds, describe them, and jam together with the whole class's sound library. Treat privacy as a first-class requirement: these users are minors.
 
-> Status: joining a class, adding a sound (upload → trim → describe → save → place) and the SuperSonic engine test page are built. The class-wide field, the jam, anonymous student IDs and the Students/Jams tables are still the plan.
+> Status: joining a class, adding a sound (upload → trim → describe → save → place), the teacher review page, the SuperSonic engine test page and the class library (play any Approved sound from the field) are built. Looping in the jam, anonymous student IDs and the Students/Jams tables are still the plan.
 
 ## Product
 
@@ -10,9 +10,12 @@ A web app for 8th and 9th graders (about ages 13–15). Students record short fo
 1. **Join** with a class code (`/api/join`). The code is the only thing kept in `localStorage`.
 2. **Upload** a file from a field recorder and **choose up to 3 seconds**. The clip is cleaned up in the browser: mono, 44.1 kHz, 80 Hz high-pass, trimmed, faded, normalized, 16-bit WAV.
 3. **Describe** it with **exactly one onomatopoeia** (e.g. "bzzt") and **exactly two descriptor words** (e.g. "buzzy", "bright"), each in its own field. Words are lowercased and trimmed, letters (including accented ones), spaces and hyphens only, max 20 characters. The rules live in `shared/words.js` and are checked in the browser and again in `/api/sounds`.
-4. **Save:** `/api/sign-upload` → signed upload of the WAV straight to Cloudinary (`resource_type: video`, WAV only) → `/api/sounds` creates the Sounds record with Status **Pending** → `/api/place` asks Claude for a position.
+4. **Save:** `/api/sign-upload` → signed upload of the WAV straight to Cloudinary (`resource_type: video`, WAV only) → `/api/sounds` creates the Sounds record with Status **Pending** → `/api/place` asks Claude for a position and sets Status to **Approved** unless Needs review is set (`placedStatus` in `api/_lib/placement.js`). Only flagged sounds wait for the teacher; a teacher's Approved/Rejected is never changed.
 5. **Place:** the student clicks the field where they think the sound belongs. Only then do two ghost dots appear: **Words** (Claude, from the three words) and **Sound** (the in-browser audio analysis), with Claude's one-line reason. The student can drag the dot or nudge it with the arrow keys (0.01 per press, 0.1 with Shift), then saves it with `/api/student-position`. The ghosts appear after the first click on purpose: the student commits to their own guess before comparing it with the others.
 6. A success screen ends with **"Upload another"**.
+
+### Teacher review (built)
+`/review` (no class code needed). The teacher enters `TEACHER_PIN`; `/api/teacher-login` checks it on the server (5 wrong tries lock that IP out for 15 minutes, per serverless instance) and returns a token signed with `TEACHER_TOKEN_SECRET` that lasts 2 hours, kept in `sessionStorage`. Changing the PIN invalidates every token. The page lists Pending sounds from every class (flagged ones, and any that were never placed), Needs review first, with Play, Approve and Reject; `/api/review` sets Status. `vercel.json` rewrites `/review` to `index.html`; the app has no router.
 
 ### The field
 Every sound is a dot on a 2D field, drawn with D3.
@@ -27,7 +30,9 @@ Every sound is a dot on a 2D field, drawn with D3.
 | **Clicks** | noise + hit | x < 0, y < 0 |
 | **Whooshes** | noise + hold | x < 0, y > 0 |
 
-A point exactly on an axis counts as Note / Hold. `src/field/quadrants.js` is the only `quadrantOf`; don't add another.
+A point exactly on an axis counts as Note / Hold. `shared/quadrants.js` is the only `quadrantOf`; don't add another.
+
+**Two field components:** `FieldFrame` (fixed 400×400 viewBox, used by the place step) and `DotField` (`src/field/DotField.jsx`, used by the Jam). `DotField` takes `sounds`, `usedIds` (a Set: faded, skipped by Tab, can't be picked), `states` (`loading` / `error` per id) and `onPick`. React draws the layers and fixed labels; `useDotField` does the D3 part (scales, d3-zoom up to 8×, the data join). Each dot sits at Final X/Y plus a jitter of ±0.02 seeded from its id that never crosses an axis, and drifts at most 3 px with a CSS animation (off under `prefers-reduced-motion`). Tab goes in reading order; a focused dot outside the zoomed view is panned into view. The seeded rules are in `src/field/dotField.js`.
 
 **Coordinates:** every position (student, Claude, audio, final) is clamped to [−1, 1] and rounded to **two decimals**, using `toCoordinate` in `shared/position.js` on both client and server.
 
@@ -36,6 +41,11 @@ A point exactly on an axis counts as Note / Hold. `src/field/quadrants.js` is th
 - **Claude:** `/api/place` sends only the three words, inside `<sound>` tags that the prompt says to treat as data. It never sends audio or features: Claude is meant to be an independent second opinion. Claude returns `x, y, confidence, needs_review, reason`. A sound with Claude X already set is never re-scored.
 - **Default (blend):** if Claude's confidence ≥ 0.5, the default is the average of Claude and audio; otherwise it's the audio position, and Needs review is set. Needs review is also set when Claude flags an inappropriate word. The blend goes into Final X/Y so a sound has a dot even if the student never places it. The settings are `CLAUDE_WEIGHT` and `MIN_CONFIDENCE` in `api/_lib/placement.js`.
 - **Student:** the student's spot is saved once per sound (409 after that) to Student X/Y and **replaces Final X/Y**. `/api/place` never overwrites Final X/Y once Student X is set.
+
+### Class library (built)
+After Start, the Jam section fetches `/api/library` (GET, class code in the `X-Class-Code` header): every Approved sound in the caller's class with id, onomatopoeia, descriptors, Cloudinary's WAV delivery URL (built from Cloudinary ID), Final X/Y and quadrant. The server caches each class's library in memory for 5 minutes (per serverless instance) and sends `Cache-Control: private, max-age=300`; `private` keeps it out of Vercel's shared CDN, since the answer depends on a header. So an approval can take up to ~10 minutes to show.
+
+Samples load **lazily, on first click**, not all at Start: the library has no size limit, SuperSonic allows 1024 buffers by default (`numBuffers`), and each 3 s clip decodes to ~576 KB of float32. `src/audio/samplePool.js` hands out buffers 16–143 (128 slots, ~74 MB) and unloads the least recently used sound when full, never one a track is looping or one still loading. Buffers 0 (test sound) and 1 (upload preview) are reserved.
 
 ### Jam (planned)
 - Clicking a dot loops that sound.
@@ -57,7 +67,7 @@ A point exactly on an axis counts as Note / Hold. `src/field/quadrants.js` is th
 ## Rules (non-negotiable)
 
 1. **Secrets never reach the browser.** Client code (`src/`) may only read `import.meta.env.VITE_*` variables, and no `VITE_` variable may hold a secret. Never import Airtable, Cloudinary-admin, or Anthropic SDKs into `src/`. Anything that needs a secret goes in an `/api` function.
-2. **Every `/api` function validates an active class code before doing anything else.** Look the code up in `Classes`, check that it is active, and return 401/403 if it isn't. Use the shared helper `api/_lib/auth.js` (wrap the handler in `withClass`, or call `requireClass` first); don't reimplement the check in each endpoint. Endpoints that take a `soundId` load it with `getClassSound` (`api/_lib/sounds.js`), which returns 404 for a sound from another class. **Only exception:** `api/health.js`, which touches no data and returns just `{ ok: true }`.
+2. **Every `/api` function validates an active class code before doing anything else.** Look the code up in `Classes`, check that it is active, and return 401/403 if it isn't. Use the shared helper `api/_lib/auth.js` (wrap the handler in `withClass`, or call `requireClass` first); don't reimplement the check in each endpoint. Endpoints that take a `soundId` load it with `getClassSound` (`api/_lib/sounds.js`), which returns 404 for a sound from another class. **Exceptions:** `api/health.js`, which touches no data and returns just `{ ok: true }`; and the teacher endpoints `api/teacher-login.js` (checks `TEACHER_PIN`) and `api/review.js` (works across classes, so it takes a teacher token through `withTeacher` in `api/_lib/teacher.js` instead of a class code).
 3. **No student names.** Don't store names, emails, or any other PII. Each student has an anonymous ID (`crypto.randomUUID()`) kept in `localStorage`.
 4. **One session per student.** Each student runs their own session. A sound can be used **once per student session**. Track this in React state, not in Airtable or `localStorage`.
 5. **Opted-out students can't record.** A student flagged "opted out of recording" can still play and export but cannot record. Enforce this in both places: the UI hides recording, and the upload-signing endpoint refuses the request.
@@ -71,28 +81,35 @@ A point exactly on an axis counts as Note / Hold. `src/field/quadrants.js` is th
 - `vercel dev`: run the app locally at http://localhost:3000. Use this, not `npm run dev`; Vite alone doesn't serve `/api`.
 - `npm test`: Vitest unit tests (`*.test.js` next to the code).
 - `node scripts/setup-airtable.mjs`: create the Classes and Sounds tables, or add any missing fields, and seed the `TEST01` class. Safe to re-run; it never changes or removes existing fields.
+- `node --env-file=.env.local scripts/approve-unflagged.mjs [--apply]`: one-off backfill that gives already-placed sounds the Status `/api/place` would give them now. Dry run without `--apply`.
 - `node scripts/tune-features.mjs [folder]`: show where each labeled clip (`plinks-*.wav`, `hums-*.wav`, …) lands.
 
 ## Layout
 
 ```
-shared/              rules used by both src/ and api/ (words.js, position.js)
+shared/              rules used by both src/ and api/ (words.js, position.js, quadrants.js)
 src/
   components/        small UI components
     uploader/        pick a file, choose up to 3 s, preview the clip
     describe/        the three-word form and the success screen
     place/           the student places their sound; ghost dots and key
   audio/             SuperSonic provider, clip processing, Meyda features
-  field/             D3 field pieces (FieldFrame, FieldDot, scale, quadrants, placement hook)
+  field/             D3 field pieces (FieldFrame, FieldDot, scale, placement hook; DotField for the Jam)
   session/           class code join and storage
+  review/            teacher /review page: PIN form, pending list, approve/reject
+  library/           fetch the class library; load its samples on first click
+  components/jam/    Jam section: the class library on a DotField
   sound/             saveSound.js: sign → upload → record → place, and saving the student's spot
 api/
-  _lib/              auth, airtable, cloudinary, placement (prompt, schema, blend), sounds
+  _lib/              auth, airtable, cloudinary, placement (prompt, schema, blend), sounds, library (cache)
   join.js            check a class code
   sign-upload.js     Cloudinary upload signature
   sounds.js          create a Sounds record (Status Pending)
   place.js           Claude Haiku placement (the only Claude call)
   student-position.js  save the student's spot (once per sound)
+  teacher-login.js   TEACHER_PIN -> signed teacher token
+  review.js          list Pending sounds, set Approved / Rejected (teacher token)
+  library.js         the class's Approved sounds (cached 5 min)
   health.js          liveness, no class check
 scripts/             Airtable setup, feature tuning, SuperSonic asset copy
 ```
@@ -129,7 +146,7 @@ Airtable quirk: fetching a record ID that doesn't exist returns **403** (`INVALI
 
 ## Environment variables
 
-All of these are server-only. They are read in `/api` and never in `src/`. Local values go in `.env.local`, which is gitignored. `.env.example` lists the names.
+All of these are server-only. They are read in `/api` and never in `src/`. `.env.example` lists the names. The project is linked to Vercel, and `vercel dev` uses the Development variables stored in Vercel, not `.env.local`: add every new variable with `vercel env add NAME development` (and `production`), then restart `vercel dev`. `.env.local` (gitignored) is still handy for scripts run with `node --env-file=.env.local`.
 
 | Name | Description |
 |---|---|
@@ -141,5 +158,7 @@ All of these are server-only. They are read in `/api` and never in `src/`. Local
 | `CLOUDINARY_UPLOAD_FOLDER` | Cloudinary folder that uploads go into (default `found-sound`). `/api/sounds` only accepts public IDs inside it. |
 | `ANTHROPIC_API_KEY` | Claude API key, used only by `/api/place`. **Secret.** |
 | `ANTHROPIC_MODEL` | Model ID for placement (default `claude-haiku-5-5`). |
+| `TEACHER_PIN` | PIN for `/review`. **Secret.** Use 8+ characters. |
+| `TEACHER_TOKEN_SECRET` | Random string that signs teacher tokens. **Secret.** |
 
 No `VITE_` variables are needed yet. If you add one, it must be safe for anyone to see.
