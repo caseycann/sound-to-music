@@ -1,15 +1,18 @@
-import { useRef } from 'react'
-import { MAX_UPLOAD_BYTES } from '../../audio/decodeUpload.js'
+import { useId, useRef, useState } from 'react'
 import StepHeading from '../StepHeading.jsx'
+import AddOptions from './AddOptions.jsx'
 
 const ACCEPT = 'audio/*,.wav,.mp3,.flac,.m4a'
 
-// The Step 1 box is the file chooser: clicking it opens the file dialog of a
-// hidden <input type="file">. autoFocus puts focus on the box when it comes
-// back (after an error, or "Pick a different file"), so the student can
-// press Enter to choose again.
+// The Step 1 box opens and closes the two ways to add a sound (AddOptions):
+// Upload, which opens the file dialog of a hidden <input type="file">, and
+// Record. They start open after an error or "Upload another" (autoFocus),
+// when the student is already choosing; autoFocus also puts focus on the box.
+// onFile(file) gets the uploaded or recorded file.
 export default function FilePicker({ onFile, error, autoFocus }) {
   const inputRef = useRef(null)
+  const optionsId = useId()
+  const [open, setOpen] = useState(Boolean(error) || autoFocus)
 
   function handleChange(event) {
     const file = event.target.files[0]
@@ -23,10 +26,10 @@ export default function FilePicker({ onFile, error, autoFocus }) {
         step={1}
         autoFocus={autoFocus}
         action={{
-          onClick: () => inputRef.current.click(),
-          hint: error
-            ? 'Click to choose a different recording'
-            : `Click to choose a recording (WAV, MP3, FLAC or M4A, up to ${MAX_UPLOAD_BYTES / 1024 / 1024} MB)`,
+          onClick: () => setOpen((o) => !o),
+          expanded: open,
+          controls: optionsId,
+          hint: open ? 'Click to close' : 'Click to upload or record a sound',
         }}
       >
         Add a sound
@@ -40,6 +43,7 @@ export default function FilePicker({ onFile, error, autoFocus }) {
         tabIndex={-1}
         aria-hidden="true"
       />
+      {open && <AddOptions id={optionsId} onUpload={() => inputRef.current.click()} onRecorded={onFile} />}
       {error && <p role="alert" className="error-message">{error}</p>}
     </div>
   )

@@ -46,7 +46,7 @@ export default function SelectionStep({ upload, selection, onSelectionChange, on
         <button type="button" onClick={onUse} aria-disabled={processing || undefined}>
           {processing ? 'Cleaning up…' : 'Use this part'}
         </button>
-        <button type="button" onClick={onPickAnother} aria-disabled={processing || undefined}>Pick a different file</button>
+        <button type="button" onClick={onPickAnother} aria-disabled={processing || undefined}>Use a different sound</button>
       </div>
       {error && <p role="alert" className="error-message">{error}</p>}
     </section>

@@ -3,11 +3,12 @@ import { useFocusOnMount } from './useFocusOnMount.js'
 // A section's numbered heading, centred in an outlined box (.step-heading in
 // index.css), e.g. "Step 1: Add a sound".
 //
-// With `action` ({ onClick, hint, disabled }), the box is also the section's
+// With `action` ({ onClick, hint, disabled, expanded, controls }), the box is also the section's
 // first button: the whole box is clickable and `hint` says what it does. The
 // heading stays an <h2> around the button, so it still reads as a heading.
 // A disabled action stays focusable (aria-disabled), so focus isn't lost
-// while it waits.
+// while it waits. expanded/controls make it a disclosure button that opens
+// and closes the element with that id (aria-expanded).
 //
 // autoFocus: focus the button (or, without an action, the heading) when it
 // mounts, for when it replaces whatever the student was using.
@@ -32,6 +33,8 @@ export default function StepHeading({ step, action, autoFocus = false, children 
         type="button"
         onClick={action.disabled ? undefined : action.onClick}
         aria-disabled={action.disabled || undefined}
+        aria-expanded={action.expanded}
+        aria-controls={action.expanded ? action.controls : undefined}
         autoFocus={autoFocus}
       >
         <span className="step-heading-title">{title}</span>

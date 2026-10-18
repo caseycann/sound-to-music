@@ -1,20 +1,14 @@
 import { forwardRef, useId } from 'react'
+import CornerNames from './CornerNames.jsx'
 import { PAD } from './useDotField.js'
-
-// Quadrant names sit in the plot's corners and don't move with the zoom.
-const CORNERS = [
-  { name: 'Whooshes', side: 'left', row: 'top' },
-  { name: 'Hums', side: 'right', row: 'top' },
-  { name: 'Clicks', side: 'left', row: 'bottom' },
-  { name: 'Plinks', side: 'right', row: 'bottom' },
-]
 
 // The empty DotField <svg>: React draws the layers and the fixed labels;
 // useDotField fills the tints, centre lines and dots and follows the zoom,
 // and draws click effects into .dot-field-effects.
 //
-// The glow filter is only on the corner names, which don't move. The dots
-// drift all the time, so they glow with a halo circle instead (index.css).
+// The glow filter is only on the corner names (CornerNames), which don't
+// move with the zoom. The dots drift all the time, so they glow with a halo
+// circle instead (index.css).
 const DotFieldFrame = forwardRef(function DotFieldFrame({ size, label, describedBy }, ref) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
   const clipId = `dot-field-clip-${uid}`
@@ -42,19 +36,7 @@ const DotFieldFrame = forwardRef(function DotFieldFrame({ size, label, described
         <g className="dot-field-dots" />
         <g className="dot-field-effects" aria-hidden="true" />
       </g>
-      <g className="dot-field-corners" aria-hidden="true" filter={`url(#${glowId})`}>
-        {CORNERS.map((c) => (
-          <text
-            key={c.name}
-            className={`q-${c.name.toLowerCase()}`}
-            x={c.side === 'left' ? PAD + 10 : size - PAD - 10}
-            y={c.row === 'top' ? PAD + 20 : size - PAD - 12}
-            textAnchor={c.side === 'left' ? 'start' : 'end'}
-          >
-            {c.name}
-          </text>
-        ))}
-      </g>
+      <CornerNames size={size} pad={PAD} filter={`url(#${glowId})`} />
     </svg>
   )
 })

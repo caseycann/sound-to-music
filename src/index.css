@@ -482,6 +482,96 @@ progress {
   width: min(720px, 100% - 32px);
 }
 
+/* ---- The two ways to add a sound, under the Step 1 box (AddOptions.jsx) ---- */
+
+.add-options {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  text-align: center;
+  animation: add-options-in 0.2s ease-out;
+}
+
+@keyframes add-options-in {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .add-options { animation: none; }
+}
+
+.add-options-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.add-option {
+  min-width: 11em;
+  padding: 10px 18px;
+  font-weight: 700;
+  color: var(--plinks);
+  border-color: var(--plinks);
+}
+
+.add-option:hover:not(:disabled, [aria-disabled='true']) {
+  border-color: var(--plinks);
+  box-shadow: 0 0 14px rgb(var(--plinks-rgb) / 0.45);
+}
+
+.add-option.is-recording {
+  background: var(--plinks);
+  color: var(--bg);
+}
+
+.add-options-hint,
+.mic-time {
+  max-width: 34em;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.mic-capture {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.mic-status {
+  margin: 0;
+  font-weight: 600;
+  color: var(--plinks);
+}
+
+.mic-count {
+  display: inline-block;
+  min-width: 1ch;
+  font-size: 1.6em;
+  vertical-align: -0.1em;
+  text-shadow: 0 0 10px var(--plinks);
+}
+
+/* Input level: shows the microphone is hearing something. */
+.mic-meter {
+  width: min(320px, 100%);
+  height: 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.mic-meter-fill {
+  height: 100%;
+  background: var(--plinks);
+  box-shadow: 0 0 10px var(--plinks);
+}
+
 .button-row {
   display: flex;
   flex-wrap: wrap;
@@ -1108,6 +1198,18 @@ progress {
   font-weight: 700;
   letter-spacing: 0.06em;
   pointer-events: none;
+}
+
+/* Each new corner word fades in (CornerNames.jsx); under reduced motion the
+   words don't change at all. */
+@media (prefers-reduced-motion: no-preference) {
+  .dot-field-corners text {
+    animation: corner-word-in 0.6s ease-out;
+  }
+}
+
+@keyframes corner-word-in {
+  from { opacity: 0; }
 }
 
 /* Axis ends around the field (AxisLabel.jsx): Hold above, Hit below, Noise

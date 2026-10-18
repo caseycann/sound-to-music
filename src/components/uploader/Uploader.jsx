@@ -8,7 +8,8 @@ import FilePicker from './FilePicker.jsx'
 import SelectionStep from './SelectionStep.jsx'
 import StepHeading from '../StepHeading.jsx'
 
-// Pick a file -> choose up to 3 s of it -> preview the cleaned-up clip.
+// Pick a file, or record one with the microphone -> choose up to 3 s of it
+// -> preview the cleaned-up clip.
 // onClip receives { blob, samples, sampleRate, duration, analysis,
 // originalName, selection } when a clip is ready (analysis is
 // analyzeSamples' { features, audioX, audioY, terms }), and null when the

@@ -68,8 +68,9 @@ export default function DescribeForm({ clip, onSaved }) {
     <form className="describe-form" onSubmit={handleSubmit} noValidate>
       <h3>Describe your sound</h3>
       {field('onomatopoeia', 'Onomatopoeia — words that make the sounds they describe', 'What it sounds like, e.g. “bzzt” or “plonk”')}
-      {field('descriptor1', 'Describe it', 'One word, e.g. “buzzy”')}
-      {field('descriptor2', 'Describe it again', 'Another word, e.g. “bright”')}
+      {/* Two different questions, so the two words say different things. */}
+      {field('descriptor1', 'How does it feel?', 'One word for its texture, e.g. “rough”, “smooth” or “fuzzy”')}
+      {field('descriptor2', 'How does it move?', 'One word for how it starts or ends, e.g. “snappy”, “ringing” or “fading”')}
       <div className="button-row">
         <button type="submit" aria-disabled={saving || undefined}>{saving ? 'Saving…' : 'Save sound'}</button>
       </div>
