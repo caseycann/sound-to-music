@@ -2,8 +2,10 @@ import { createContext, useContext } from 'react'
 
 export const SuperSonicContext = createContext(null)
 
-// Engine:    status ('idle' | 'loading' | 'ready' | 'error'), error, start,
-//            loadSample(bufferNumber, url), playOnce(bufferNumber)
+// Engine:    status ('idle' | 'loading' | 'ready' | 'error'), error (its
+//            message is written for students), start() -> Promise<boolean>
+//            (false if it failed), loadSample(bufferNumber, url),
+//            playOnce(bufferNumber)
 // Jam:       jam ({ bpm, tracks, usedIds }, see jam.js), tracks, bpm,
 //            usedIds (a Set), canAddTrack, addTrack(bufferNumber, overrides)
 //            -> id | null, updateTrack(id, patch), removeTrack(id), setBpm

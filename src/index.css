@@ -11,6 +11,7 @@
   --surface-2: #161624;
   --border: #26263a;
   --border-strong: #3a3a58;
+  --border-control: #6a6a8e; /* text inputs: 3:1 against every surface (WCAG 1.4.11) */
   --text: #ecebff;
   --muted: #9d9cba;
   --plinks-rgb: 255 181 71; /* amber */
@@ -129,11 +130,12 @@ h2.step-heading.is-action button {
   cursor: pointer;
 }
 
-h2.step-heading.is-action button:active:not(:disabled) {
+h2.step-heading.is-action button:active:not(:disabled, [aria-disabled='true']) {
   transform: scale(0.98);
 }
 
-h2.step-heading.is-action button:disabled {
+h2.step-heading.is-action button:disabled,
+h2.step-heading.is-action button[aria-disabled='true'] {
   opacity: 1;
   cursor: progress;
 }
@@ -308,10 +310,36 @@ h2.step-heading.is-action:focus-within .step-heading-hint {
 
 /* ---- Class badge: top right, or above the title on narrow screens ---- */
 
-.class-badge {
+.class-corner {
   position: absolute;
   top: 14px;
   right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* A link to /review, drawn like the badge's button. */
+.review-link {
+  padding: 4px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+
+.review-link:hover,
+.review-link:focus-visible {
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.class-badge {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -343,7 +371,7 @@ h2.step-heading.is-action:focus-within .step-heading-hint {
 }
 
 @media (max-width: 900px) {
-  .class-badge {
+  .class-corner {
     position: static;
     justify-self: end;
     margin: 0 16px;
@@ -382,19 +410,25 @@ button {
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s, transform 0.08s;
 }
 
-button:hover:not(:disabled) {
+button:hover:not(:disabled, [aria-disabled='true']) {
   border-color: var(--accent);
   color: #fff;
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
-button:active:not(:disabled) {
+button:active:not(:disabled, [aria-disabled='true']) {
   transform: translateY(1px) scale(0.97);
 }
 
-button:disabled {
+button:disabled,
+button[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* A busy button ("Saving…") stays focusable, so it keeps a visible ring. */
+button[aria-disabled='true']:focus-visible {
+  opacity: 0.7;
 }
 
 button[aria-pressed='true'] {
@@ -414,7 +448,7 @@ select {
   font: inherit;
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   padding: 6px 8px;
 }
@@ -512,7 +546,8 @@ progress {
 
 .waveform-selection:focus-visible,
 .waveform-handle:focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid #fff; /* white: the selection box is already amber */
+  outline-offset: -3px; /* inside, so the track's overflow can't clip it */
 }
 
 .describe-form {
@@ -580,12 +615,12 @@ progress {
 }
 
 .field-axis {
-  stroke: var(--border-strong);
+  stroke: var(--border-control); /* the lines that divide the quadrants */
 }
 
 .field-quadrant {
   font-size: 16px;
-  fill: #4a4a68;
+  fill: var(--muted);
   text-anchor: middle;
   dominant-baseline: middle;
 }
@@ -817,7 +852,7 @@ progress {
   text-shadow: 0 0 8px var(--accent-2-glow);
 }
 
-.add-instrument:hover:not(:disabled) {
+.add-instrument:hover:not(:disabled, [aria-disabled='true']) {
   border-color: var(--accent-2);
   box-shadow: 0 0 14px var(--accent-2-glow);
 }
@@ -849,16 +884,30 @@ progress {
 
 .track-row.is-muted {
   box-shadow: none;
+  border-left-style: dashed;
 }
 
+/* Muted rows lose their glow but keep full-contrast text; the "muted" tag
+   and the pressed Mute button say it in words. */
 .track-row.is-muted legend {
   text-shadow: none;
-  opacity: 0.6;
 }
 
-.track-row.is-muted .track-controls,
-.track-row.is-muted .bar-toggles {
-  opacity: 0.45;
+.track-row-tag {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: none;
+  vertical-align: 2px;
+}
+
+.track-row-tag.is-muted-tag {
+  color: var(--muted);
 }
 
 .track-row-buttons {
@@ -878,8 +927,54 @@ progress {
 .bar-toggles {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 6px;
   margin-bottom: 8px;
+}
+
+.bar-toggles-label {
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+/* ---- Tips (useTip.js): fixed, placed by script beside the instrument's
+   box, so they cover no other words and the scrolling panel can't clip them ---- */
+
+/* The word to hover. */
+.tip-trigger {
+  cursor: help;
+}
+
+.tip {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: max-content;
+  max-width: min(280px, 90vw);
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 0 14px rgb(var(--whooshes-rgb) / 0.2);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  text-shadow: none;
+}
+
+.tip.is-open {
+  display: block;
+}
+
+.slider-note {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .bar-toggle {
@@ -900,11 +995,15 @@ progress {
   box-shadow: 0 0 10px var(--q, var(--accent));
 }
 
-/* The bar that is sounding now. */
+/* The bar that is sounding now: a white ring drawn with box-shadow, so the
+   focus outline (below) still shows on it. */
 .bar-toggle.is-now {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-  box-shadow: 0 0 18px 2px var(--q, var(--accent));
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #fff, 0 0 18px 2px var(--q, var(--accent));
+}
+
+.bar-toggle:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 5px;
 }
 
 .remove-confirm {
@@ -960,9 +1059,11 @@ progress {
   opacity: 0.07;
 }
 
+/* The quadrant borders: 3:1 against the field, since where a dot sits
+   (not only its colour) says which quadrant it's in. */
 .dot-field-center {
   stroke: #fff;
-  stroke-opacity: 0.14;
+  stroke-opacity: 0.35;
 }
 
 .dot-field-corners text {
@@ -1038,9 +1139,12 @@ progress {
   stroke-width: 2;
 }
 
+/* White, and drawn outside the hover halo (r 16), so it shows on dots of
+   every colour, sky ones included. */
 .dot:focus-visible .dot-hit {
+  r: 19px;
   fill: none;
-  stroke: var(--accent);
+  stroke: #fff;
   stroke-width: 2.5;
 }
 
@@ -1053,8 +1157,12 @@ progress {
   to { opacity: 0.6; }
 }
 
+/* Didn't load: a dashed white ring, not just a colour (amber would hide on
+   Plinks). The label and tooltip say so too. */
 .dot.is-error .dot-mark {
-  fill: var(--danger);
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
 }
 
 /* Used this session: a dim hollow ring. */
@@ -1130,6 +1238,11 @@ progress {
   color: var(--muted);
 }
 
+.dot-tooltip-quadrant {
+  color: var(--q);
+  font-weight: 600;
+}
+
 .zoom-controls {
   display: flex;
   justify-content: center;
@@ -1139,4 +1252,38 @@ progress {
 
 .zoom-controls button {
   min-width: 2.25em;
+}
+
+/* ---- Failures and dialogs ---- */
+
+.join,
+.unsupported {
+  width: min(560px, 100% - 32px);
+}
+
+.library-stale {
+  min-height: 1.4em;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* "Join your class again", over the page when the class code stops working. */
+.rejoin-dialog {
+  width: min(480px, 100% - 32px);
+  box-sizing: border-box;
+  padding: 20px 24px 24px;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 0 28px var(--accent-glow);
+}
+
+.rejoin-dialog::backdrop {
+  background: rgb(0 0 0 / 0.7);
+}
+
+.rejoin-dialog h2 {
+  margin-top: 0;
+  font-size: 1.4rem;
 }

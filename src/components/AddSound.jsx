@@ -18,11 +18,13 @@ export default function AddSound() {
     setRound((r) => r + 1)
   }
 
-  if (saved && position) return <UploadSuccess words={saved.words} position={position} onAnother={handleAnother} />
-  if (saved) return <PlaceSound saved={saved} onPlaced={setPosition} />
+  if (saved && position) {
+    return <UploadSuccess words={saved.words} position={position} placement={saved.placement} onAnother={handleAnother} />
+  }
+  if (saved) return <PlaceSound saved={saved} onPlaced={setPosition} onStartOver={handleAnother} />
 
   return (
-    <Uploader key={round} onClip={setClip}>
+    <Uploader key={round} onClip={setClip} autoFocus={round > 0}>
       {clip && <DescribeForm clip={clip} onSaved={setSaved} />}
     </Uploader>
   )

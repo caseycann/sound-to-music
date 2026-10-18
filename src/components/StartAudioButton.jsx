@@ -12,10 +12,10 @@ export default function StartAudioButton() {
 
   return (
     <div>
-      <button onClick={start} disabled={status === 'loading' || status === 'ready'}>
+      <button onClick={() => start()} disabled={status === 'loading' || status === 'ready'}>
         {LABELS[status]}
       </button>
-      {error && <p role="alert">Audio could not start: {error.message}</p>}
+      {error && <p role="alert">{error.message}</p>}
     </div>
   )
 }

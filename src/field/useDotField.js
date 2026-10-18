@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { scaleLinear, select, zoom, zoomIdentity } from 'd3'
 import { QUADRANTS } from '../../shared/quadrants.js'
-import { dotLabel, dotLayout, inTabOrder, resizeTransform } from './dotField.js'
+import { dotLabel, dotLayout, inTabOrder, nextDot, resizeTransform } from './dotField.js'
 import { splash } from './splash.js'
 
 export const PAD = 28 // px around the plot, for the axis labels
@@ -15,18 +15,31 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
 // React renders the empty layers (see DotFieldFrame); this hook fills them.
 //
 // Returns active (the dot under the pointer or keyboard focus, with its
-// position in px), and zoomIn / zoomOut / resetZoom for the buttons.
+// position in px), zoomIn / zoomOut / resetZoom for the buttons, and
+// focusField() to put keyboard focus on the field.
 // A pick ripples out from the dot; with highlight on (the pick adds a
 // track) it bursts instead.
+//
+// Keyboard: the field is one Tab stop (a roving tabindex): the last dot
+// focused, or else the first unused one in reading order. Arrow keys move to
+// the nearest dot that way (used ones too, so they can be heard about),
+// Home / End go to the first / last dot, Enter or Space picks, and + / − / 0
+// zoom in, out and back, around the focused dot.
 export function useDotField({ svgRef, size, sounds, usedIds, states, onPick, highlight }) {
   const [transform, setTransform] = useState(zoomIdentity)
   const [activeId, setActiveId] = useState(null)
+  const [focusId, setFocusId] = useState(null)
   const zoomRef = useRef(null)
   const sizeRef = useRef(size)
   const live = useRef({}) // latest values for the D3 event handlers
   live.current = { usedIds, onPick, transform, highlight }
 
   const dots = useMemo(() => inTabOrder(sounds.map(dotLayout)), [sounds])
+  const tabStopId = useMemo(() => {
+    if (dots.some((d) => d.sound.id === focusId)) return focusId
+    return (dots.find((d) => !usedIds.has(d.sound.id)) ?? dots[0])?.sound.id ?? null
+  }, [dots, focusId, usedIds])
+  live.current.dots = dots
 
   const base = useMemo(
     () =>
@@ -119,7 +132,7 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick, hig
         return g
           .on('mouseenter', (_, d) => setActiveId(d.sound.id))
           .on('mouseleave', (_, d) => leave(d))
-          .on('focus', (_, d) => { setActiveId(d.sound.id); revealRef.current(d) })
+          .on('focus', (_, d) => { setActiveId(d.sound.id); setFocusId(d.sound.id); revealRef.current(d) })
           .on('blur', (_, d) => leave(d))
           .on('click', (_, d) => pick(d))
           .on('keydown', (event, d) => {
@@ -136,16 +149,61 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick, hig
         const state = states[d.sound.id] ? ` is-${states[d.sound.id]}` : ''
         return `dot q-${d.quadrant.toLowerCase()}${used}${state}`
       })
-      .attr('tabindex', (d) => (usedIds.has(d.sound.id) ? -1 : 0))
+      .attr('tabindex', (d) => (d.sound.id === tabStopId ? 0 : -1))
       .attr('aria-disabled', (d) => (usedIds.has(d.sound.id) ? 'true' : null))
       .attr('aria-busy', (d) => (states[d.sound.id] === 'loading' ? 'true' : null))
-      .attr('aria-label', (d) => dotLabel(d.sound, usedIds.has(d.sound.id)))
+      .attr('aria-label', (d) => dotLabel(d.sound, usedIds.has(d.sound.id), d.quadrant, states[d.sound.id]))
       .select('.dot-body')
       .style('--dx', (d) => `${d.drift.dx.toFixed(2)}px`)
       .style('--dy', (d) => `${d.drift.dy.toFixed(2)}px`)
       .style('animation-duration', (d) => `${d.drift.duration.toFixed(2)}s`)
       .style('animation-delay', (d) => `${d.drift.delay.toFixed(2)}s`)
-  }, [base, dots, usedIds, states, svgRef])
+  }, [base, dots, usedIds, states, tabStopId, svgRef])
+
+  const focusDot = useCallback(
+    (dot) => {
+      select(svgRef.current)
+        .selectAll('g.dot')
+        .filter((d) => d.sound.id === dot.sound.id)
+        .node()
+        ?.focus()
+    },
+    [svgRef],
+  )
+
+  // Zoom by k around the focused dot, or the middle of the field.
+  const zoomBy = useCallback(
+    (k) => {
+      const { scales, dots } = live.current
+      const dot = dots.find((d) => d.sound.id === document.activeElement?.__data__?.sound?.id)
+      const at = dot && scales ? [scales.x(dot.x), scales.y(dot.y)] : null
+      animate((s) => (at ? s.call(zoomRef.current.scaleBy, k, at) : s.call(zoomRef.current.scaleBy, k)))
+    },
+    [animate],
+  )
+  const resetZoom = useCallback(() => animate((s) => s.call(zoomRef.current.transform, zoomIdentity)), [animate])
+
+  // Arrow keys, Home / End and zoom keys while a dot has focus. (Enter and
+  // Space are handled on the dot itself.)
+  useEffect(() => {
+    const svg = select(svgRef.current)
+    svg.on('keydown.field', (event) => {
+      const from = event.target.__data__
+      if (!from?.sound) return
+      const { dots } = live.current
+      let to = null
+      if (event.key === 'Home') to = dots[0]
+      else if (event.key === 'End') to = dots[dots.length - 1]
+      else if (event.key.startsWith('Arrow')) to = nextDot(dots, from, event.key) ?? from
+      else if (event.key === '+' || event.key === '=') zoomBy(ZOOM_STEP)
+      else if (event.key === '-' || event.key === '_') zoomBy(1 / ZOOM_STEP)
+      else if (event.key === '0') resetZoom()
+      else return
+      event.preventDefault()
+      if (to && to !== from) focusDot(to)
+    })
+    return () => { svg.on('keydown.field', null) }
+  }, [svgRef, focusDot, zoomBy, resetZoom])
 
   // Positions: dots, quadrant tints and centre lines follow the zoom.
   // Dots keep their size; only where they sit changes.
@@ -171,6 +229,7 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick, hig
   const activeDot = scales && dots.find((d) => d.sound.id === activeId)
   const active = activeDot && {
     sound: activeDot.sound,
+    quadrant: activeDot.quadrant,
     used: usedIds.has(activeDot.sound.id),
     left: scales.x(activeDot.x),
     top: scales.y(activeDot.y),
@@ -182,6 +241,10 @@ export function useDotField({ svgRef, size, sounds, usedIds, states, onPick, hig
     canZoomIn: transform.k < MAX_ZOOM,
     zoomIn: () => animate((s) => s.call(zoomRef.current.scaleBy, ZOOM_STEP)),
     zoomOut: () => animate((s) => s.call(zoomRef.current.scaleBy, 1 / ZOOM_STEP)),
-    resetZoom: () => animate((s) => s.call(zoomRef.current.transform, zoomIdentity)),
+    resetZoom,
+    focusField: () => {
+      const dot = dots.find((d) => d.sound.id === tabStopId)
+      if (dot) focusDot(dot)
+    },
   }
 }

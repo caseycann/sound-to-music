@@ -96,7 +96,8 @@ export function placedStatus(currentStatus, needsReview) {
 // which replaces it; this is what the field shows if they never do.
 // Confident Claude: average the two. Unsure Claude: trust the audio and flag
 // for review. Either side can be missing (audio null, or Claude null after a
-// refusal); then the other one is used alone.
+// refusal or a failed call); then the other one is used alone, and without
+// Claude the sound is always flagged.
 export function blend(claude, audio) {
   const hasAudio = audio && Number.isFinite(audio.x) && Number.isFinite(audio.y)
   if (!claude) {

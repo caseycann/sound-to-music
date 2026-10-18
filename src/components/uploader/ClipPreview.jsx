@@ -1,15 +1,19 @@
 import { DEBUG } from '../../debug.js'
 import DownloadLink from '../DownloadLink.jsx'
 import FeatureDebugPanel from '../FeatureDebugPanel.jsx'
+import { useFocusOnMount } from '../useFocusOnMount.js'
 import PlayClipButton from './PlayClipButton.jsx'
 import WaveformCanvas from './WaveformCanvas.jsx'
 
 const baseName = (fileName) => fileName.replace(/\.[^.]+$/, '')
 
 export default function ClipPreview({ clip, onChooseAgain }) {
+  // "Use this part" was just pressed and is gone.
+  const introRef = useFocusOnMount()
+
   return (
     <section>
-      <p>
+      <p ref={introRef} tabIndex={-1}>
         Your sound: {clip.duration.toFixed(2)} s from <strong>{clip.originalName}</strong>
       </p>
       <div className="waveform">

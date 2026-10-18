@@ -11,9 +11,11 @@ const MAX_FILE_NAME = 200
 
 // POST { classCode, publicId, secureUrl, duration, originalName,
 //        onomatopoeia, descriptor1, descriptor2, audioX, audioY }
-// -> { ok, id }. Creates a Sounds record with Status "Pending". Placement by
-// Claude (/api/place) happens separately, and approves the sound unless it
-// needs review.
+// -> { ok, id }. Creates a Sounds record with Status "Pending", already
+// placed from the audio alone (Final X/Y) and flagged Needs review. Placement
+// by Claude (/api/place) happens separately: it replaces both, and approves
+// the sound unless it needs review. If that call never happens or fails, the
+// sound still has a dot and waits for the teacher.
 export default withClass(async (req, res, cls) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -37,6 +39,10 @@ export default withClass(async (req, res, cls) => {
     throw new HttpError(400, 'invalid_duration')
   }
 
+  const audioX = toCoordinate(body.audioX)
+  const audioY = toCoordinate(body.audioY)
+  const hasAudio = audioX !== null && audioY !== null
+
   const record = await createRecord('Sounds', {
     Onomatopoeia: words.onomatopoeia,
     'Descriptor 1': words.descriptor1,
@@ -46,8 +52,11 @@ export default withClass(async (req, res, cls) => {
     'Audio URL': secureUrl,
     Duration: Math.round(duration * 100) / 100,
     Class: [cls.id],
-    'Audio X': toCoordinate(body.audioX),
-    'Audio Y': toCoordinate(body.audioY),
+    'Audio X': audioX,
+    'Audio Y': audioY,
+    ...(hasAudio && { 'Final X': audioX, 'Final Y': audioY }),
+    'Needs review': true,
+    Reason: 'Not placed by Claude yet.',
     Status: 'Pending',
   })
   res.status(201).json({ ok: true, id: record.id })

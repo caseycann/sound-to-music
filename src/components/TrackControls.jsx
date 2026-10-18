@@ -27,6 +27,7 @@ export default function TrackControls({ track }) {
     <div className="track-controls">
       <RangeSlider
         label="Start"
+        tip="When in the bar the sound comes in. Beat 1 is the start of the bar; each step moves it a quarter of a beat later."
         min={OFFSET.min}
         max={OFFSET.max}
         step={OFFSET.step}
@@ -36,6 +37,7 @@ export default function TrackControls({ track }) {
       />
       <RangeSlider
         label="Pitch"
+        tip="Higher or lower. Each step is one semitone (one piano key), and 12 steps is an octave. Higher also plays faster and shorter."
         min={SEMITONES.min}
         max={SEMITONES.max}
         step={1}
@@ -45,6 +47,7 @@ export default function TrackControls({ track }) {
       />
       <RangeSlider
         label="Attack"
+        tip="How long the sound takes to fade in. At 0 it hits at once; turn it up to make it swell in."
         min={ATTACK.min}
         max={ATTACK.max}
         step={0.01}
@@ -54,6 +57,7 @@ export default function TrackControls({ track }) {
       />
       <RangeSlider
         label="Release"
+        tip="How long the sound takes to fade out at its end. At 0 it stops sharply."
         min={RELEASE.min}
         max={RELEASE.max}
         step={0.01}
@@ -63,6 +67,7 @@ export default function TrackControls({ track }) {
       />
       <RangeSlider
         label="Volume"
+        tip="How loud this track is next to the others."
         min={AMP.min}
         max={AMP.max}
         step={0.01}
@@ -72,6 +77,7 @@ export default function TrackControls({ track }) {
       />
       <RangeSlider
         label="Cutoff"
+        tip="Takes away the high sounds. Turn it down for a darker, muffled sound; Open lets everything through. You hear it at once."
         min={CUTOFF.min}
         max={CUTOFF.max}
         step={1}
@@ -81,6 +87,7 @@ export default function TrackControls({ track }) {
       />
       <RangeSlider
         label="Reverb"
+        tip="Adds echo, like playing the sound in a big room. 0% is dry. You hear it at once."
         min={REVERB.min}
         max={REVERB.max}
         step={0.01}

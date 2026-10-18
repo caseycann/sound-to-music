@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DRIFT_PX, JITTER, dotLabel, dotLayout, inTabOrder, randomFrom, resizeTransform, seedFrom } from './dotField.js'
+import { DRIFT_PX, JITTER, dotLabel, dotLayout, inTabOrder, nextDot, randomFrom, resizeTransform, seedFrom } from './dotField.js'
 
 const sound = (id, finalX, finalY) => ({ id, finalX, finalY, onomatopoeia: 'bzzt', descriptors: ['buzzy', 'bright'] })
 
@@ -84,5 +84,34 @@ describe('dotLabel', () => {
   it('lists the words and marks used sounds', () => {
     expect(dotLabel(sound('r', 0, 0), false)).toBe('bzzt: buzzy, bright')
     expect(dotLabel(sound('r', 0, 0), true)).toBe('bzzt: buzzy, bright (used)')
+  })
+
+  it('names the quadrant and a load that failed', () => {
+    expect(dotLabel(sound('r', 0, 0), false, 'Hums')).toBe('bzzt: buzzy, bright. Hums')
+    expect(dotLabel(sound('r', 0, 0), true, 'Clicks', 'error')).toBe('bzzt: buzzy, bright. Clicks (used, didn’t load, pick to retry)')
+  })
+})
+
+describe('nextDot', () => {
+  const at = (id, x, y) => ({ sound: { id }, x, y })
+  const centre = at('centre', 0, 0)
+  const right = at('right', 0.5, 0)
+  const farRightInLine = at('farRight', 0.9, 0.05)
+  const upRight = at('upRight', 0.2, 0.6)
+  const left = at('left', -0.3, -0.1)
+  const dots = [centre, right, farRightInLine, upRight, left]
+
+  it('moves to the nearest dot that way, preferring ones in line', () => {
+    expect(nextDot(dots, centre, 'ArrowRight')).toBe(right)
+    expect(nextDot(dots, right, 'ArrowRight')).toBe(farRightInLine)
+    expect(nextDot(dots, centre, 'ArrowUp')).toBe(upRight)
+    expect(nextDot(dots, centre, 'ArrowLeft')).toBe(left)
+    expect(nextDot(dots, upRight, 'ArrowDown')).toBe(centre)
+  })
+
+  it('returns null at the edge, or for other keys', () => {
+    expect(nextDot(dots, farRightInLine, 'ArrowRight')).toBeNull()
+    expect(nextDot(dots, centre, 'Enter')).toBeNull()
+    expect(nextDot([], null, 'ArrowUp')).toBeNull()
   })
 })

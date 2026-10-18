@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useImperativeHandle, useRef } from 'react'
 import DotFieldFrame from './DotFieldFrame.jsx'
 import DotTooltip from './DotTooltip.jsx'
 import ZoomControls from './ZoomControls.jsx'
@@ -14,16 +14,19 @@ const NO_STATES = {}
 //   states:  { [id]: 'loading' | 'error' } for per-dot status styling
 //   onPick(sound): click, or Enter / Space on a focused dot
 //   highlight: outline the field, e.g. while a pick will add a track
-export default function DotField({ sounds, usedIds = NO_IDS, states = NO_STATES, onPick, highlight = false, label = 'Sounds' }) {
+//   describedBy: id of the text with the keyboard instructions
+//   ref: { focus() } puts keyboard focus on the field's tab stop
+export default function DotField({ ref, sounds, usedIds = NO_IDS, states = NO_STATES, onPick, highlight = false, label = 'Sounds', describedBy }) {
   const [frameRef, size] = useElementWidth()
   const svgRef = useRef(null)
   const field = useDotField({ svgRef, size, sounds, usedIds, states, onPick, highlight })
+  useImperativeHandle(ref, () => ({ focus: field.focusField }), [field.focusField])
 
   return (
     <div className={highlight ? 'dot-field is-highlighted' : 'dot-field'}>
       <div ref={frameRef} className="dot-field-frame">
-        <DotFieldFrame ref={svgRef} size={size} label={label} />
-        {field.active && <DotTooltip {...field.active} fieldSize={size} />}
+        <DotFieldFrame ref={svgRef} size={size} label={label} describedBy={describedBy} />
+        {field.active && <DotTooltip {...field.active} state={states[field.active.sound.id]} fieldSize={size} />}
       </div>
       <ZoomControls
         zoomed={field.zoomed}

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { sliceMono } from '../../audio/process.js'
 import { wavBlob } from '../../audio/wav.js'
 import { MAX_SELECTION_S, channelsOf, peakLevel, viewAround } from '../../audio/waveform.js'
+import { useFocusOnMount } from '../useFocusOnMount.js'
 import PlayClipButton from './PlayClipButton.jsx'
 import WaveformSelector from './WaveformSelector.jsx'
 import { formatTime } from './formatTime.js'
@@ -15,6 +16,8 @@ export default function SelectionStep({ upload, selection, onSelectionChange, on
   const { sampleRate, duration } = audio
   const channels = useMemo(() => channelsOf(audio), [audio])
   const scale = useMemo(() => 1 / (peakLevel(channels) || 1), [channels])
+  // The Step 1 box (or "Use this part") that was just pressed is gone.
+  const introRef = useFocusOnMount()
 
   // Audition the raw selection as the mono mix it will become.
   const getSelectionClip = () => {
@@ -26,8 +29,9 @@ export default function SelectionStep({ upload, selection, onSelectionChange, on
 
   return (
     <section>
-      <p>
-        <strong>{name}</strong> ({formatTime(duration)}). Drag the box to choose up to {MAX_SELECTION_S} seconds.
+      <p ref={introRef} tabIndex={-1}>
+        <strong>{name}</strong> ({formatTime(duration)}). Drag the box to choose up to {MAX_SELECTION_S} seconds,
+        or Tab to it and use the arrow keys (Shift moves further).
       </p>
       <WaveformSelector label="Whole recording" view={{ start: 0, end: duration }} {...shared} />
       {duration > CLOSE_UP_AFTER_S && (
@@ -39,12 +43,12 @@ export default function SelectionStep({ upload, selection, onSelectionChange, on
       </p>
       <div className="button-row">
         <PlayClipButton label="Play selection" getClip={getSelectionClip} />
-        <button type="button" onClick={onUse} disabled={processing}>
+        <button type="button" onClick={onUse} aria-disabled={processing || undefined}>
           {processing ? 'Cleaning up…' : 'Use this part'}
         </button>
-        <button type="button" onClick={onPickAnother} disabled={processing}>Pick a different file</button>
+        <button type="button" onClick={onPickAnother} aria-disabled={processing || undefined}>Pick a different file</button>
       </div>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" className="error-message">{error}</p>}
     </section>
   )
 }

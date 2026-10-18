@@ -72,6 +72,39 @@ export function resizeTransform(t, from, to, pad) {
   return { k: t.k, x: shift(t.x), y: shift(t.y) }
 }
 
-export function dotLabel(sound, used) {
-  return `${sound.onomatopoeia}: ${sound.descriptors.join(', ')}${used ? ' (used)' : ''}`
+// Arrow-key moves between dots, by position on the field (x right, y up).
+// From `from`, the nearest dot in that direction, favouring dots in line
+// with it over ones off to the side; null if there is none that way.
+const DIRECTIONS = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }
+const SIDEWAYS_COST = 2
+
+export function nextDot(dots, from, key) {
+  const dir = DIRECTIONS[key]
+  if (!dir || !from) return null
+  let best = null
+  let bestScore = Infinity
+  for (const dot of dots) {
+    if (dot === from) continue
+    const dx = dot.x - from.x
+    const dy = dot.y - from.y
+    const ahead = dx * dir[0] + dy * dir[1]
+    const sideways = Math.abs(dx * dir[1] - dy * dir[0])
+    // Dots on exactly the same spot are reached with Home / End / Tab order.
+    if (ahead <= 1e-9) continue
+    const score = ahead + SIDEWAYS_COST * sideways
+    if (score < bestScore) {
+      best = dot
+      bestScore = score
+    }
+  }
+  return best
+}
+
+// What a screen reader hears for a dot: its words, its quadrant (the dot's
+// colour says the same to sighted users, and its place on the field), and
+// whether it's used or failed to load.
+export function dotLabel(sound, used, quadrant, state) {
+  const notes = [used && 'used', state === 'error' && 'didn’t load, pick to retry', state === 'loading' && 'loading'].filter(Boolean)
+  const where = quadrant ? `. ${quadrant}` : ''
+  return `${sound.onomatopoeia}: ${sound.descriptors.join(', ')}${where}${notes.length ? ` (${notes.join(', ')})` : ''}`
 }

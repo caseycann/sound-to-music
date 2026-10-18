@@ -3,7 +3,7 @@ export const BPM = { min: 60, max: 180, initial: 120 }
 export const RATE = { min: 0.25, max: 4 } // playback rate: ±2 octaves
 export const ATTACK = { min: 0, max: 1 } // seconds
 export const RELEASE = { min: 0, max: 2 } // seconds
-// Linear gain. Below 1 by default so eight normalized clips on the same beat
+// Linear gain. Below 1 by default so twelve normalized clips on the same beat
 // don't clip as badly.
 export const AMP = { min: 0, max: 1, initial: 0.6 }
 // Low-pass cutoff as a MIDI note: 40 is about 82 Hz (very muffled), 130 about

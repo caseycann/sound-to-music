@@ -5,8 +5,10 @@ import StepHeading from '../StepHeading.jsx'
 const ACCEPT = 'audio/*,.wav,.mp3,.flac,.m4a'
 
 // The Step 1 box is the file chooser: clicking it opens the file dialog of a
-// hidden <input type="file">.
-export default function FilePicker({ onFile, error }) {
+// hidden <input type="file">. autoFocus puts focus on the box when it comes
+// back (after an error, or "Pick a different file"), so the student can
+// press Enter to choose again.
+export default function FilePicker({ onFile, error, autoFocus }) {
   const inputRef = useRef(null)
 
   function handleChange(event) {
@@ -19,9 +21,12 @@ export default function FilePicker({ onFile, error }) {
     <div>
       <StepHeading
         step={1}
+        autoFocus={autoFocus}
         action={{
           onClick: () => inputRef.current.click(),
-          hint: `Click to choose a recording (up to ${MAX_UPLOAD_BYTES / 1024 / 1024} MB)`,
+          hint: error
+            ? 'Click to choose a different recording'
+            : `Click to choose a recording (WAV, MP3, FLAC or M4A, up to ${MAX_UPLOAD_BYTES / 1024 / 1024} MB)`,
         }}
       >
         Add a sound
@@ -35,7 +40,7 @@ export default function FilePicker({ onFile, error }) {
         tabIndex={-1}
         aria-hidden="true"
       />
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" className="error-message">{error}</p>}
     </div>
   )
 }

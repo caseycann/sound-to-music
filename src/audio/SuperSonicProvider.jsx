@@ -36,6 +36,18 @@ function createEngine({ onSetup }) {
 
 const bundle = (time, packets) => SuperSonic.osc.encodeBundle(time, packets)
 
+// What to tell a student when the engine won't boot. The raw error goes to
+// the console.
+function engineFailureMessage(err) {
+  if (/AudioWorklet|WebAssembly|SharedArrayBuffer|not supported/i.test(err?.message ?? '')) {
+    return 'This browser can’t run the sound engine. Try an up-to-date Chrome, Edge, Firefox or Safari.'
+  }
+  if (/fetch|network|load/i.test(err?.message ?? '') && navigator.onLine === false) {
+    return 'The sound engine couldn’t download because you’re offline. Check your Wi-Fi, then try again.'
+  }
+  return 'The sound engine didn’t start. Try again; if it keeps happening, reload the page.'
+}
+
 export default function SuperSonicProvider({ children }) {
   const engineRef = useRef(null)
   const readyRef = useRef(false)
@@ -53,13 +65,15 @@ export default function SuperSonicProvider({ children }) {
   const [currentBar, setCurrentBar] = useState(null) // 0..LOOP_BARS-1 while playing
   const { jam, jamRef, dispatch } = useJam() // the bar clock reads jamRef
 
-  // Must be called from a click handler: browsers only start audio after a gesture.
+  // Must be called from a click handler: browsers only start audio after a
+  // gesture. Resolves true once the engine is running, false if it failed
+  // (status 'error'; error.message is written for students).
   const start = useCallback(async () => {
-    if (readyRef.current) return
-    engineRef.current ??= createEngine({ onSetup: groups.clear })
+    if (readyRef.current) return true
     setStatus('loading')
     setError(null)
     try {
+      engineRef.current ??= createEngine({ onSetup: groups.clear })
       // init() is safe to repeat: concurrent calls share one boot, and it can
       // be retried after a failure.
       await engineRef.current.init()
@@ -67,10 +81,12 @@ export default function SuperSonicProvider({ children }) {
       await engineRef.current.sync()
       readyRef.current = true
       setStatus('ready')
+      return true
     } catch (err) {
       console.error('SuperSonic failed to start', err)
-      setError(err)
+      setError(new Error(engineFailureMessage(err)))
       setStatus('error')
+      return false
     }
   }, [groups])
 

@@ -6,7 +6,7 @@ import { AMP, ATTACK, BPM, CUTOFF, LOOP_BARS, OFFSET, RATE, RELEASE, REVERB, cla
 // reverb, offset, muted, bars, loop } (see tracks.js). usedIds only grows: a sound is used once per session
 // (CLAUDE.md rule 4), so removing its track doesn't give it back.
 
-export const MAX_TRACKS = 8
+export const MAX_TRACKS = 12
 
 export const initialJam = { bpm: BPM.initial, tracks: [], usedIds: [] }
 

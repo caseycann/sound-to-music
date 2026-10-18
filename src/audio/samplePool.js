@@ -34,7 +34,7 @@ export function createSamplePool({ first, size }) {
         return { bufferNumber: hit.bufferNumber, fresh: false }
       }
       const bufferNumber = freeSlot() ?? evict(busy)
-      if (bufferNumber === null) throw new Error('Too many sounds are in use. Remove a layer and try again.')
+      if (bufferNumber === null) throw new Error('Too many sounds are in use. Remove a track and try again.')
       slots.set(key, { bufferNumber, lastUsed: ++tick })
       return { bufferNumber, fresh: true }
     },

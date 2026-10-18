@@ -40,12 +40,26 @@ export default function SessionProvider({ children }) {
     setSession({ status: 'joined', classCode, className, notice: null })
   }, [])
 
+  // The student chose to switch class: back to the Join screen.
   const leave = useCallback(() => {
     clearStoredCode()
     setSession(NEEDS_JOIN)
   }, [])
 
-  const value = useMemo(() => ({ ...session, join, leave }), [session, join, leave])
+  // An /api call answered 401 mid-session (the teacher turned the class
+  // off). The page stays as it is under a dialog asking for a code, so the
+  // student's clip and jam survive; joining again carries on from there.
+  // Only a joined session can expire; calling it again changes nothing.
+  const expire = useCallback(() => {
+    clearStoredCode()
+    setSession((prev) => (prev.status !== 'joined' ? prev : {
+      ...prev,
+      status: 'expired',
+      notice: `The class code ${prev.classCode} isn’t active any more. Ask your teacher for a code, then join again. Your sound and your jam are still here.`,
+    }))
+  }, [])
+
+  const value = useMemo(() => ({ ...session, join, leave, expire }), [session, join, leave, expire])
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
 }

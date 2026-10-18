@@ -15,14 +15,14 @@ const CORNERS = [
 //
 // The glow filter is only on the corner names, which don't move. The dots
 // drift all the time, so they glow with a halo circle instead (index.css).
-const DotFieldFrame = forwardRef(function DotFieldFrame({ size, label }, ref) {
+const DotFieldFrame = forwardRef(function DotFieldFrame({ size, label, describedBy }, ref) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
   const clipId = `dot-field-clip-${uid}`
   const glowId = `dot-field-glow-${uid}`
   const plot = Math.max(0, size - 2 * PAD)
   const mid = size / 2
   return (
-    <svg ref={ref} className="dot-field-svg" width={size} height={size} role="group" aria-label={label}>
+    <svg ref={ref} className="dot-field-svg" width={size} height={size} role="group" aria-label={label} aria-describedby={describedBy}>
       <defs>
         <clipPath id={clipId}>
           <rect x={PAD} y={PAD} width={plot} height={plot} />
