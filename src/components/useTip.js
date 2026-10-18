@@ -15,10 +15,12 @@ let closeOpen = null
 // Escape hides it. Screen readers get it through aria-describedby={tipId}
 // even while it is hidden.
 //
-// The tip is position: fixed, to the right of the trigger's instrument box
-// and level with the word, so it never covers the other words and the
-// scrolling track panel can't clip it. With no room on the right it goes on
-// the left. Scrolling hides it, since it wouldn't follow.
+// The tip is position: fixed, outside the trigger's instrument box, so it
+// never covers the box and the scrolling track panel can't clip it: to the
+// right of the box and level with the word, else to the left, else below the
+// box, else above it, whichever first fits in the window. Scrolling hides
+// it, since it wouldn't follow. (The field's axis tips use their own box
+// under the field: AxisTips.jsx.)
 export function useTip() {
   const tipId = useId()
   const triggerRef = useRef(null)
@@ -85,10 +87,22 @@ function place(trigger, tip) {
   const word = trigger.getBoundingClientRect()
   const box = (trigger.closest(ANCHOR) ?? trigger).getBoundingClientRect()
   const t = tip.getBoundingClientRect()
-  let left = box.right + GAP
-  if (left + t.width > window.innerWidth - MARGIN) left = box.left - GAP - t.width
-  left = Math.max(MARGIN, Math.min(left, window.innerWidth - MARGIN - t.width))
-  const top = Math.max(MARGIN, Math.min(word.top, window.innerHeight - MARGIN - t.height))
-  tip.style.top = `${top}px`
-  tip.style.left = `${left}px`
+  const maxLeft = window.innerWidth - MARGIN - t.width
+  const maxTop = window.innerHeight - MARGIN - t.height
+  const clampTop = (top) => Math.max(MARGIN, Math.min(top, maxTop))
+  const clampLeft = (left) => Math.max(MARGIN, Math.min(left, maxLeft))
+
+  const right = box.right + GAP
+  const left = box.left - GAP - t.width
+  const below = box.bottom + GAP
+  const above = box.top - GAP - t.height
+  let pos
+  if (right <= maxLeft) pos = { left: right, top: clampTop(word.top) }
+  else if (left >= MARGIN) pos = { left, top: clampTop(word.top) }
+  else if (below <= maxTop) pos = { left: clampLeft(box.left), top: below }
+  else if (above >= MARGIN) pos = { left: clampLeft(box.left), top: above }
+  else pos = { left: clampLeft(right), top: clampTop(word.top) } // nothing fits: as close as it can
+
+  tip.style.top = `${pos.top}px`
+  tip.style.left = `${pos.left}px`
 }

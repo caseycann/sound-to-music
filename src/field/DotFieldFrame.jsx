@@ -20,7 +20,6 @@ const DotFieldFrame = forwardRef(function DotFieldFrame({ size, label, described
   const clipId = `dot-field-clip-${uid}`
   const glowId = `dot-field-glow-${uid}`
   const plot = Math.max(0, size - 2 * PAD)
-  const mid = size / 2
   return (
     <svg ref={ref} className="dot-field-svg" width={size} height={size} role="group" aria-label={label} aria-describedby={describedBy}>
       <defs>
@@ -55,12 +54,6 @@ const DotFieldFrame = forwardRef(function DotFieldFrame({ size, label, described
             {c.name}
           </text>
         ))}
-      </g>
-      <g className="dot-field-ends" aria-hidden="true">
-        <text x={mid} y={PAD - 10} textAnchor="middle">Hold ↑</text>
-        <text x={mid} y={size - 9} textAnchor="middle">Hit ↓</text>
-        <text x={PAD} y={size - 9} textAnchor="start">← Noise</text>
-        <text x={size - PAD} y={size - 9} textAnchor="end">Note →</text>
       </g>
     </svg>
   )

@@ -3,6 +3,7 @@ import { useSuperSonic } from '../../audio/SuperSonicContext.js'
 import { useSession } from '../../session/SessionContext.js'
 import StepHeading from '../StepHeading.jsx'
 import JamLibrary from './JamLibrary.jsx'
+import RecordJam from '../record/RecordJam.jsx'
 
 // The Step 2 box opens the jam. The engine may already be running (playing
 // a clip in Step 1 starts it), so the jam stays closed until the box is
@@ -39,11 +40,15 @@ export default function JamSection() {
   }
 
   return (
-    <section className="jam">
-      {/* The box was the button just pressed; once the jam opens, focus its heading. */}
-      <StepHeading step={2} action={action} autoFocus={showing}>Jam</StepHeading>
-      {opened && error && <p role="alert" className="error-message">{error.message}</p>}
-      {showing && <JamLibrary />}
-    </section>
+    <>
+      <section className="jam">
+        {/* The box was the button just pressed; once the jam opens, focus its heading. */}
+        <StepHeading step={2} action={action} autoFocus={showing}>Jam</StepHeading>
+        {opened && error && <p role="alert" className="error-message">{error.message}</p>}
+        {showing && <JamLibrary />}
+      </section>
+      {/* Step 3 follows the jam once it's open. */}
+      {showing && <RecordJam />}
+    </>
   )
 }

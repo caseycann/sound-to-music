@@ -10,7 +10,8 @@ export default function PickPrompt({ picking, pending, added, count, hintId }) {
   return (
     <p className={picking ? 'pick-prompt is-picking' : 'pick-prompt'}>
       <span role="status">{text}</span>{' '}
-      <span className="pick-prompt-hint" id={hintId}>
+      {/* Not shown, but the field's aria-describedby reads it to screen readers. */}
+      <span className="visually-hidden" id={hintId}>
         Keyboard: Tab to the field, arrow keys move between dots, Enter picks, + and − zoom, 0 resets.
         Mouse: scroll or use the buttons to zoom, drag to pan. ({count} {count === 1 ? 'sound' : 'sounds'})
       </span>
